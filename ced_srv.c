@@ -137,6 +137,40 @@ int ced_get_selected(int x,int y,GLfloat *wx,GLfloat *wy,GLfloat *wz){
   return 0;
 }
 
+/*************************************************************** 
+* hauke hoelbe 08.02.2010                                      *
+* A extra picking function, do the same as ced_get_selected,   *
+* without center the selected object                           *
+***************************************************************/
+int ced_picking(int x,int y,GLfloat *wx,GLfloat *wy,GLfloat *wz){
+  CED_ObjMap *p,*best;
+  unsigned i;
+  int dx,dy;
+  int d,dist=0; // calculate dist as |x-x'|+|y-y'|
+
+  y=viewport[3]-y-1; // to get correct direction
+  for(i=0,p=omap,best=0;i<omap_count;i++,p++){
+    //    printf("%d %d -- %d %d\n",x,y,p->x,p->y);
+    dx=abs(p->x-x);
+    dy=abs(p->y-y);
+    if((dx>p->max_dxy) || (dy>p->max_dxy))
+      continue;
+    d=dx+dy;
+    if(!best || (d<dist)){
+      best=p;
+      dist=d;
+    }
+  }
+  if(!best)
+    return 1;
+  printf("Picking: HIT %d\n",best->ID);
+
+  SELECTED_ID = best->ID;
+  return 0;
+}
+
+
+
 inline int ced_selected() {
     return SELECTED_ID;
 }

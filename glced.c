@@ -307,6 +307,18 @@ static void display(void){
   glutSwapBuffers();
 }
 
+/***************************************
+* hauke hoelbe 08.02.2010              *
+* Zoom by mousewheel                   *
+***************************************/
+static void mouseWheel(int wheel, int direction, int x, int y){
+  //printf("mousewheel: direction %i, wheel %i, direction %i, x %i, y %i\n", direction, wheel, x, y);
+  mm.sf+=(10.*direction)/window_height;
+  glutPostRedisplay();
+  if(mm.sf<0.2){ mm.sf=0.2; }
+  else if(mm.sf>20.){ mm.sf=20.; }
+}
+
 
 static void reshape(int w,int h){
   // printf("Reshaped: %dx%d\n",w,h);
@@ -628,6 +640,10 @@ int main(int argc,char *argv[]){
   glutKeyboardFunc(keypressed);
   glutSpecialFunc(SpecialKey);
   glutMotionFunc(motion);
+
+  //hauke 08.02.2010 
+  glutMouseWheelFunc(mouseWheel);
+
 
   //    glutTimerFunc(2000,time,23);
   glutTimerFunc(500,timer,23);
