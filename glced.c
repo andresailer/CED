@@ -374,8 +374,9 @@ static void show_all_layers(void){
 
 static void keypressed(unsigned char key,int x,int y){
 
+  //hauke
   //SM-H: TODO: socket list for communicating with client
-  //struct __glutSocketList *sock;
+  struct __glutSocketList *sock;
 
   printf("Key at %dx%d: %u('%c')\n",x,y,key,key);
   if(key=='r' || key=='R'){
@@ -397,15 +398,22 @@ static void keypressed(unsigned char key,int x,int y){
   else if(key=='c' || key=='C'){
     if(!ced_get_selected(x,y,&mm.mv.x,&mm.mv.y,&mm.mv.z))
          glutPostRedisplay();
-     //SM-H
-     //TODO: Picking code: needs to work well with corresponding code in MarlinCED
-     //sock=__glutSockets ;
-     //
-     //int id = SELECTED_ID;
-     //printf(" ced_get_selected : socket connected: %d", sock->fd );	
-     //
-     //send( sock->fd , &id , sizeof(int) , 0 ) ;
+
   } 
+  //hauke hoelbe: 08.02.2010
+  else if(key=='p' || key=='P'){
+    if(!ced_picking(x,y,&mm.mv.x,&mm.mv.y,&mm.mv.z))
+      //hauke hoelbe: 08.02.2010
+      //SM-H
+      //TODO: Picking code: needs to work well with corresponding code in MarlinCED
+      sock=__glutSockets ;
+      //
+      int id = SELECTED_ID;
+      printf(" ced_get_selected : socket connected: %d", sock->fd );	
+     
+      send( sock->fd , &id , sizeof(int) , 0 ) ;
+
+  }
   else if(key=='v' || key=='V'){
     if(fisheye_alpha==0.0){
         fisheye_alpha = 1e-3;
