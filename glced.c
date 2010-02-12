@@ -40,11 +40,19 @@
 #include <errno.h>
 #include <sys/select.h>
 
+//hauke
+#include <sys/time.h>
+#include <time.h>
+
+
 #define DEFAULT_WORLD_SIZE 1000.  //SJA:FIXED Reduce world size to give better scale
 
 static float WORLD_SIZE;
 static float FISHEYE_WORLD_SIZE;
 double fisheye_alpha = 0.0;
+
+//hauke
+long int doubleClickTime=0;
 
 extern int SELECTED_ID ;
 
@@ -336,6 +344,10 @@ static void reshape(int w,int h){
 }
 
 static void mouse(int btn,int state,int x,int y){
+  //hauke
+  struct timeval tv;
+  struct __glutSocketList *sock;
+
 
   if(state!=GLUT_DOWN){
     move_mode=NO_MOVE;
@@ -349,7 +361,21 @@ static void mouse(int btn,int state,int x,int y){
   mm.mv_start=mm.mv;
   switch(btn){
   case GLUT_LEFT_BUTTON:
-    move_mode=TURN_XY;
+  //hauke
+    gettimeofday(&tv, 0); 
+    //FIX IT: get the system double click time
+    if(tv.tv_sec*1000000+tv.tv_usec-doubleClickTime < 300000){ //1000000=1sec
+      //printf("Double Click\n");
+      if(!ced_picking(x,y,&mm.mv.x,&mm.mv.y,&mm.mv.z));
+      sock=__glutSockets ;
+      int id = SELECTED_ID;
+      //printf(" ced_get_selected : socket connected: %d", sock->fd );	
+      send( sock->fd , &id , sizeof(int) , 0 ) ;
+    }else{
+      //printf("Single Click\n");
+      move_mode=TURN_XY;
+    }
+    doubleClickTime=tv.tv_sec*1000000+tv.tv_usec;
     return;
   case GLUT_RIGHT_BUTTON:
     move_mode=ZOOM;
@@ -409,7 +435,7 @@ static void keypressed(unsigned char key,int x,int y){
       sock=__glutSockets ;
       //
       int id = SELECTED_ID;
-      printf(" ced_get_selected : socket connected: %d", sock->fd );	
+      //printf(" ced_get_selected : socket connected: %d", sock->fd );	
      
       send( sock->fd , &id , sizeof(int) , 0 ) ;
 
