@@ -51,6 +51,10 @@ void ced_send_event(void);
 
 int ced_selected_id(void);
 
+//hauke
+int ced_selected_id_noblock(void);
+
+
 /*********************************************
  *
  * The following is elements API.

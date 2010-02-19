@@ -161,8 +161,10 @@ int ced_picking(int x,int y,GLfloat *wx,GLfloat *wy,GLfloat *wz){
       dist=d;
     }
   }
-  if(!best)
+  if(!best){
+    SELECTED_ID =0; //hauke
     return 1;
+  }
   printf("Picking: HIT %d\n",best->ID);
 
   SELECTED_ID = best->ID;

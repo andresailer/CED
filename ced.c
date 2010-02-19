@@ -17,7 +17,7 @@
 #include <ced.h>
 
 //hauke
-#include <stropts.h>
+//#include <stropts.h>
 #include <poll.h>
 //http://www.rhyolite.com/pipermail/dcc/2004/001986.html
 # define POLLRDNORM     0x040           /* Normal data may be read.  */
@@ -241,24 +241,30 @@ void ced_send_event(void){
   }
 }
 
-int ced_selected_id() {
-  int id=-1 ;
+
 //hauke
+int ced_selected_id_noblock() {
+  int id=-1 ;
   struct pollfd fds[1];
   fds[0].fd=ced_fd;
   fds[0].events = POLLRDNORM | POLLIN;
- // printf("enter: ced_selected_id\n");
   if(poll(fds,1,0) > 0){
     if(recv(ced_fd, &id, sizeof(int) , 0 ) > 0){
-  //      printf("leave: ced_selected_id after reading\n");
         return id;
     }else{
         return -1;
-   //     printf("leave: ced_selected_id after reading\n");
     }
   }else{
-//   printf("leave: ced_selected_id without reading\n");
    return -1;
+  }
+}
+
+int ced_selected_id() {
+  int id=-1 ;
+  if(recv(ced_fd, &id, sizeof(int) , 0 ) > 0){
+     return id;
+  }else{
+     return -1;
   }
 }
 #include <signal.h>
