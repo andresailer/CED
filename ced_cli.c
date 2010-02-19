@@ -195,6 +195,15 @@ void ced_legend(float ene_min, float ene_max, unsigned int color_steps, unsigned
   		}
 	}
 }
+//hauke 
+static unsigned TEXT_ID=0;
+
+void ced_writeText(char *message) {
+	CED_TEXT *text = (CED_TEXT*) ced_add(TEXT_ID);
+	if ( !text ) return;
+    strncpy(text->text,message,199);
+}
+//end hauke
 
 static unsigned CONER_ID=0;
 
@@ -267,5 +276,6 @@ void ced_register_elements(void){
   ELLIPSOID_ID 	=ced_register_element(sizeof(CED_EllipsoidR), 0);
   CLUELLIPSE_ID =ced_register_element(sizeof(CED_CluEllipseR), 0);
   LEGEND_ID  	=ced_register_element(sizeof(CED_Legend), 0);
+  TEXT_ID       =ced_register_element(sizeof(CED_TEXT),0); //hauke
 }
 

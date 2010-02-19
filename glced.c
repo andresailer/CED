@@ -318,6 +318,7 @@ static void display(void){
 /***************************************
 * hauke hoelbe 08.02.2010              *
 * Zoom by mousewheel                   *
+* deprecated
 ***************************************/
 static void mouseWheel(int wheel, int direction, int x, int y){
   //printf("mousewheel: direction %i, wheel %i, direction %i, x %i, y %i\n", direction, wheel, x, y);
@@ -346,7 +347,17 @@ static void reshape(int w,int h){
 static void mouse(int btn,int state,int x,int y){
   //hauke
   struct timeval tv;
+
   struct __glutSocketList *sock;
+//hauke
+  int mouseWheelDown=9999;
+  int mouseWheelUp=9999;
+  if(glutDeviceGet(GLUT_HAS_MOUSE)){
+    //printf("Your mouse have %i buttons\n", glutDeviceGet(GLUT_NUM_MOUSE_BUTTONS)); 
+    mouseWheelDown= glutDeviceGet(GLUT_NUM_MOUSE_BUTTONS);
+    mouseWheelUp=glutDeviceGet(GLUT_NUM_MOUSE_BUTTONS)+1;
+  }
+//end hauke
 
 
   if(state!=GLUT_DOWN){
@@ -386,6 +397,22 @@ static void mouse(int btn,int state,int x,int y){
   default:
     break;
   }
+//hauke
+  if(btn== mouseWheelUp){
+    mm.sf+=(20.)/window_height;
+    glutPostRedisplay();
+    if(mm.sf<0.2){ mm.sf=0.2; }
+    else if(mm.sf>20.){ mm.sf=20.; }
+    return;
+  }
+  if(btn== mouseWheelDown){
+    mm.sf+=(-20)/window_height;
+    glutPostRedisplay();
+    if(mm.sf<0.2){ mm.sf=0.2; }
+    else if(mm.sf>20.){ mm.sf=20.; }
+    return;
+  }
+//end hauke
 }
 
 static void toggle_layer(unsigned l){
@@ -676,7 +703,7 @@ int main(int argc,char *argv[]){
   glutMotionFunc(motion);
 
   //hauke 08.02.2010 
-  glutMouseWheelFunc(mouseWheel);
+//  glutMouseWheelFunc(mouseWheel);
 
 
   //    glutTimerFunc(2000,time,23);

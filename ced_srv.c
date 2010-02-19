@@ -588,6 +588,18 @@ static void renderBitmapString(
   }
 }
 
+
+
+//hauke
+static unsigned TEXT_ID=0;
+static void ced_draw_text(CED_TEXT *text){
+	int font=(int)GLUT_BITMAP_TIMES_ROMAN_10; //default font
+    renderBitmapString(0,0,(void *)font,text->text);
+    printf("render text\n");
+}
+
+//end hauke
+
 static unsigned LEGEND_ID=0;
 
 
@@ -966,5 +978,7 @@ void ced_register_elements(void){
   CLUELLIPSE_ID = ced_register_element(sizeof(CED_CluEllipseR),(ced_draw_cb)ced_draw_cluellipse_r);
   /** due to an issue w/ drawing the legend (in 2D) this has to come last ! */
   LEGEND_ID  =ced_register_element(sizeof(CED_Legend),(ced_draw_cb)ced_draw_legend);
+  TEXT_ID   =ced_register_element(sizeof(CED_TEXT),(ced_draw_cb)ced_draw_text); //hauke
+
 }
 

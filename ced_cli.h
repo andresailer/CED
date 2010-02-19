@@ -192,6 +192,15 @@ void ced_geocylinder_r(float d, double z, double * center, double * rotate, unsi
 
 void ced_geobox_r(double * sizes, double * center, double * rotate, unsigned int color, unsigned int layer);
 
+//hauke
+  typedef struct{
+    char text[200];
+  } CED_TEXT; 
+
+void ced_writeText(char *);
+//end hauke
+
+
 /*
  * Energy spectrum colour map legend.
  * @author: S.Daraszewicz (UoE)
@@ -211,7 +220,6 @@ void ced_geobox_r(double * sizes, double * center, double * rotate, unsigned int
   	/** LOG or LIN */
   	char scale;
   } CED_Legend;
-
 
 void ced_legend(float ene_min, float ene_max, unsigned int color_steps, unsigned int ** rgb_matrix, unsigned int ticks, char scale);
 
