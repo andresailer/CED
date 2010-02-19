@@ -321,7 +321,7 @@ static void display(void){
 ***************************************/
 static void mouseWheel(int wheel, int direction, int x, int y){
   //printf("mousewheel: direction %i, wheel %i, direction %i, x %i, y %i\n", direction, wheel, x, y);
-  mm.sf+=(10.*direction)/window_height;
+  mm.sf+=(20.*direction)/window_height;
   glutPostRedisplay();
   if(mm.sf<0.2){ mm.sf=0.2; }
   else if(mm.sf>20.){ mm.sf=20.; }
