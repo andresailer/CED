@@ -53,6 +53,7 @@ double fisheye_alpha = 0.0;
 
 //hauke
 long int doubleClickTime=0;
+static float BG_COLOR[4];
 
 extern int SELECTED_ID ;
 
@@ -72,6 +73,13 @@ static void set_world_size( float length) {
   axe[3][2] = WORLD_SIZE / 2. ;
 }
 
+//hauke
+static void set_bg_color(float one, float two, float three, float four){
+    BG_COLOR[0]=one;
+    BG_COLOR[1]=two;
+    BG_COLOR[2]=three;
+    BG_COLOR[3]=four;
+}
 
 
 /* AZ I check for TCP sockets as well,
@@ -150,7 +158,9 @@ static void init(void){
   //FIXME: make this a parameter (probably in MarlinCED?)
   //glClearColor(0.0,0.2,0.4,0.0);//Dark blue
   //glClearColor(1.0,1.0,1.0,0.0);//White
-  glClearColor(0.0,0.0,0.0,0.0);//Black
+  //glClearColor(0.0,0.0,0.0,0.0);//Black
+
+  glClearColor(BG_COLOR[0],BG_COLOR[1], BG_COLOR[2], BG_COLOR[3]);
   glShadeModel(GL_FLAT);
 
   glEnableClientState(GL_VERTEX_ARRAY);
@@ -375,8 +385,8 @@ static void mouse(int btn,int state,int x,int y){
   //hauke
     gettimeofday(&tv, 0); 
     //FIX IT: get the system double click time
-    if(tv.tv_sec*1000000+tv.tv_usec-doubleClickTime < 300000){ //1000000=1sec
-      //printf("Double Click\n");
+    if( (tv.tv_sec*1000000+tv.tv_usec-doubleClickTime) < 300000 && (tv.tv_sec*1000000+tv.tv_usec-doubleClickTime) > 5){ //1000000=1sec
+      //printf("Double Click %f\n", tv.tv_sec*1000000+tv.tv_usec-doubleClickTime);
       if(!ced_picking(x,y,&mm.mv.x,&mm.mv.y,&mm.mv.z));
       sock=__glutSockets ;
       int id = SELECTED_ID;
@@ -655,14 +665,48 @@ static void input_data(void *data){
 int main(int argc,char *argv[]){
 
   WORLD_SIZE = DEFAULT_WORLD_SIZE ;
+  set_bg_color(0.0,0.0,0.0,0.0); //set to default (black)
 
-  int i ;
+  char hex[]={'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'};
+  int tmp[6];
+
+  int i;
   for(i=0;i<argc ; i++){
 
     if(!strcmp( argv[i] , "-world_size" ) ) {
       float w_size = atof(  argv[i+1] )  ;
       printf( "  setting world size to  %f " , w_size ) ;
       set_world_size( w_size ) ;
+    }
+
+    if(!strcmp(argv[i], "-bgcolor") && i < argc-1){
+      if (!strcmp(argv[i+1],"Black") || !strcmp(argv[i+1],"black")){
+        printf("   setting background color to black\n");
+        set_bg_color(0.0,0.0,0.0,0.0); //Black
+      } else if (!strcmp(argv[i+1],"Blue") || !strcmp(argv[i+1],"blue")){
+        printf("   setting background color to blue\n");
+        set_bg_color(0.0,0.2,0.4,0.0); //Dark blue
+      }else if (!strcmp(argv[i+1],"White") || !strcmp(argv[i+1],"white")){
+        printf("   setting background color to white\n");
+        set_bg_color(1.0,1.0,1.0,0.0); //White
+      }else if(strlen(argv[i+1]) == 6){
+        printf("   setting background to user defined color\n");
+        int k;
+        for(k=0;k<6;k++){
+            int j;
+            for(j=0;j<=16;j++){
+                if(argv[i+1][k] == hex[j]){
+                    //printf("found, setting tmp[%i] to %i\n",k,j);
+                    tmp[k]=j*1.0;
+                }
+            }
+        }
+        //printf("color: %f  %f  %f %f\n", 0.123, (tmp[0]*16.0 + tmp[1])/255.0, (tmp[2]*16.0 + tmp[3])/255.0, (tmp[4]*16.0 + tmp[5])/255.0);
+        set_bg_color((tmp[0]*16 + tmp[1])/255.0,(tmp[2]*16 + tmp[3])/255.0,(tmp[4]*16 + tmp[5])/255.0,0.0);
+      } else {
+        printf("   unknown background color. Please choose black/blue/white or a hexadecimal number with 6 digits\n");
+      }
+    
     }
 
     if(!strcmp( argv[i] , "-h" ) || 
