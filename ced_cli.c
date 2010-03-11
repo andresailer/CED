@@ -202,6 +202,8 @@ void ced_writeText(char *message) {
 	CED_TEXT *text = (CED_TEXT*) ced_add(TEXT_ID);
 	if ( !text ) return;
     strncpy(text->text,message,199);
+    //text->x=xCordinate;
+    //text->y=yCordinate;
 }
 //end hauke
 

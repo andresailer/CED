@@ -32,6 +32,11 @@
 /** This defines what is visible */
 unsigned ced_visible_layers=0x00000FFF;
 int SELECTED_ID = -1;
+
+//hauke
+int SELECTED_X=0;
+int SELECTED_Y=0;
+
 extern double fisheye_alpha;
 #define IS_VISIBLE(x) ((1<<((x>>8)&0xff))&ced_visible_layers)
 
@@ -168,6 +173,9 @@ int ced_picking(int x,int y,GLfloat *wx,GLfloat *wy,GLfloat *wz){
   printf("Picking: HIT %d\n",best->ID);
 
   SELECTED_ID = best->ID;
+  //printf("select x = %d\n",best->x);
+  //SELECTED_X  = best->x;
+  //SELECTED_Y =  viewport[3]-best->y-1;
   return 0;
 }
 
@@ -593,9 +601,29 @@ static void renderBitmapString(
 //hauke
 static unsigned TEXT_ID=0;
 static void ced_draw_text(CED_TEXT *text){
+    int startY=-700;
+    char message[200];
 	int font=(int)GLUT_BITMAP_TIMES_ROMAN_10; //default font
-    renderBitmapString(0,0,(void *)font,text->text);
-    printf("render text\n");
+    //renderBitmapString(SELECTED_X*10,SELECTED_Y*10,(void *)font,text->text);
+    glLoadIdentity();
+    int i,j;
+    int k=0;
+    for(i=0, j=0;i<strlen(text->text);i++){
+        if(text->text[i] == '\n' || text->text[i] == 0){
+            //printf("found newline\n");
+            strncpy(message,text->text+k,i-k);
+            message[i-k]=0;
+            k=i+1;
+
+            renderBitmapString(600,-700-70*j,(void *)font,"                     ");
+            renderBitmapString(600,-700-70*j,(void *)font,message);
+            j++;
+        }
+    }
+
+    glEnd();
+
+    //printf("render text\n");
 }
 
 //end hauke

@@ -195,9 +195,11 @@ void ced_geobox_r(double * sizes, double * center, double * rotate, unsigned int
 //hauke
   typedef struct{
     char text[200];
+//    int x;
+//    int y;
   } CED_TEXT; 
 
-void ced_writeText(char *);
+void ced_writeText(char *); //, int, int);
 //end hauke
 
 
