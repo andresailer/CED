@@ -714,13 +714,14 @@ int main(int argc,char *argv[]){
        !strcmp( argv[i] , "-?" )
        ) {
       printf( "\n  CED event display server: \n\n" 
-	      "   Usage:  glced [-world_size length] [-geometry x_geometry] \n" 
+	      "   Usage:  glced [-bgcolor color] [-world_size length] [-geometry x_geometry] \n" 
 	      "        where:  \n"
+          "              - color is the background color (values: black, white, blue or hexadecimal number)\n"
 	      "              - length is the visible world-cube size in mm (default: 6000) \n" 
 	      "              - x_geometry is the window position and size in the form WxH+X+Y \n" 
 	      "                (W:width, H: height, X: x-offset, Y: y-offset) \n"
 	      "   Example: \n\n"
-	      "     ./bin/glced -world_size 1000. -geometry 600x600+500+0  > /tmp/glced.log 2>&1 & \n\n"  
+	      "     ./bin/glced -bgcolor 4C4C66 -world_size 1000. -geometry 600x600+500+0  > /tmp/glced.log 2>&1 & \n\n"  
 	      ) ;      
       exit(0) ;
     }    
