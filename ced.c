@@ -62,8 +62,8 @@ typedef struct {
   unsigned size;     // size of one item in bytes
   unsigned char *b;  // "body" - data are stored here
                      // (here is some trick :)
-  unsigned count;    // number of usefull items
-  unsigned alloced;  // number of allocated items
+  unsigned long count;    // number of usefull items
+  unsigned long alloced;  // number of allocated items
   ced_draw_cb draw;  // draw fucation, NOT used in CED client
 } ced_element;
 
@@ -77,7 +77,8 @@ static ced_event eve = {0,0};
 static ced_event ceve = {0,0}; // current event on screen
 
 // we reserve this size just before ced_element.b data
-#define HDR_SIZE 8
+//#define HDR_SIZE 8
+#define HDR_SIZE 8 //hauke 
 
 unsigned ced_register_element(unsigned item_size,ced_draw_cb draw_func){
   ced_element *pe;
@@ -200,7 +201,7 @@ int ced_process_input(void *data){
 
 void ced_send_event(void){
   struct _phdr{
-    unsigned size;
+    int size;
     unsigned type;
   } *hdr,draw_hdr;
   unsigned i,sent_sum,problem=0;
@@ -211,21 +212,33 @@ void ced_send_event(void){
   if(ced_connect())
     return;
   for(i=0;i<eve.e_count && !problem;i++){
+    printf("i=%i\n",i);
     pe=eve.e+i;
     if(!pe->count)
       continue;
+    
+    //unsigned hauke;
+    //printf("size of unsigned %i\n", sizeof(hauke));
     hdr=(struct _phdr *)(pe->b-HDR_SIZE); // !!! HERE is the trick :)
     hdr->type=i;
+    //printf("pe->count %i, pe->size %i\n",pe->count, pe->size);
     hdr->size=HDR_SIZE+pe->count*pe->size;
     sent_sum=0;
+    if(hdr->size > 10000000){printf("ups this data set is to big (%i Bytes)(%i counts)\n",hdr->size,pe->count); continue;}
     buf=(char *)hdr;
+    //printf("hdr->size=%i\n",hdr->size);
     while(sent_sum<hdr->size){
-	sent=write(ced_fd,buf+sent_sum,hdr->size-sent_sum);
-	if(sent<0){
-	    problem=1;
-	    break;
-	}
-	sent_sum+=sent;
+        printf("sent_sum = %i, hdr->size=%i\n",sent_sum,hdr->size);
+	    sent=write(ced_fd,buf+sent_sum,hdr->size-sent_sum);
+        //sent=write(ced_fd,buf+sent_sum,1);
+        //printf("byte: %u\n", buf[sent_sum]);
+        //usleep(10000);
+	    if(sent<0){
+            printf("send < 0\n");
+	        problem=1;
+	        break;
+	    }
+	    sent_sum+=sent;
     }
   }
   if(!problem){
