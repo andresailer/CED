@@ -682,30 +682,41 @@ int main(int argc,char *argv[]){
 
     if(!strcmp(argv[i], "-bgcolor") && i < argc-1){
       if (!strcmp(argv[i+1],"Black") || !strcmp(argv[i+1],"black")){
-        printf("   setting background color to black\n");
+        printf("Set background color to black.\n");
         set_bg_color(0.0,0.0,0.0,0.0); //Black
       } else if (!strcmp(argv[i+1],"Blue") || !strcmp(argv[i+1],"blue")){
-        printf("   setting background color to blue\n");
+        printf("Set background color to blue.\n");
         set_bg_color(0.0,0.2,0.4,0.0); //Dark blue
       }else if (!strcmp(argv[i+1],"White") || !strcmp(argv[i+1],"white")){
-        printf("   setting background color to white\n");
+        printf("Set background color to white.\n");
         set_bg_color(1.0,1.0,1.0,0.0); //White
-      }else if(strlen(argv[i+1]) == 6){
-        printf("   setting background to user defined color\n");
+      }else if((strlen(argv[i+1]) == 8 && argv[i+1][0] == '0' && toupper(argv[i+1][1]) == 'X') || strlen(argv[i+1]) == 6){
+        printf("Set background to user defined color.\n");
+        int n=0;
+        if(strlen(argv[i+1]) == 8){
+            n=2;
+        }
         int k;
         for(k=0;k<6;k++){
             int j;
-            for(j=0;j<=16;j++){
-                if(argv[i+1][k] == hex[j]){
-                    //printf("found, setting tmp[%i] to %i\n",k,j);
-                    tmp[k]=j*1.0;
+            tmp[k]=999;
+            for(j=0;j<16;j++){
+                if(toupper(argv[i+1][k+n]) == hex[j]){
+                    tmp[k]=j;
                 }
+
+            }
+            if(tmp[k]==999){
+                printf("Unknown digit '%c'!\nSet background color to default value.\n",argv[i+1][k+n]);
+                break;
+            }
+            if(k==5){
+                printf("set color to: %f/%f/%f\n",(tmp[0]*16 + tmp[1])/255.0, (tmp[2]*16 + tmp[3])/255.0, (tmp[4]*16 + tmp[5])/255.0); 
+                set_bg_color((tmp[0]*16 + tmp[1])/255.0,(tmp[2]*16 + tmp[3])/255.0,(tmp[4]*16 + tmp[5])/255.0,0.0);
             }
         }
-        //printf("color: %f  %f  %f %f\n", 0.123, (tmp[0]*16.0 + tmp[1])/255.0, (tmp[2]*16.0 + tmp[3])/255.0, (tmp[4]*16.0 + tmp[5])/255.0);
-        set_bg_color((tmp[0]*16 + tmp[1])/255.0,(tmp[2]*16 + tmp[3])/255.0,(tmp[4]*16 + tmp[5])/255.0,0.0);
       } else {
-        printf("   unknown background color. Please choose black/blue/white or a hexadecimal number with 6 digits\n");
+        printf("Unknown background color.\nPlease choose black/blue/white or a hexadecimal number with 6 digits!\nSet background color to default value.\n");
       }
     
     }
