@@ -639,7 +639,7 @@ static void timer (int val)
 	  if(FD_ISSET(sock->fd,&fds))
 	    {
 	      (*(sock->read_func))(sock);
-          printf("reading...\n");
+          //printf("reading...\n");
 	      glutTimerFunc(500,timer,01);
 	      return ; /* to avoid complexity with removed sockets */
 	    }

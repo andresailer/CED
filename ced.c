@@ -101,14 +101,14 @@ static void ced_buf_alloc(ced_element *pe,unsigned count){
   //if(!pe->b){
   if(!pe->b){
     pe->b=malloc(count*pe->size+HDR_SIZE);
-    printf("malloc: ask for NEW %lu bytes pointer: %p\n ", count*pe->size+HDR_SIZE, pe->b); //hauke
+    //printf("malloc: ask for NEW %lu bytes pointer: %p\n ", count*pe->size+HDR_SIZE, pe->b); //hauke
     if(pe->b==NULL){ //hauke
         printf("ERROR: malloc failed!\n");
         exit(1);
     }
   }else{
     pe->b=realloc(pe->b-HDR_SIZE,count*pe->size+HDR_SIZE);
-    printf("malloc: ask for %lu bytes, pointer: %p\n", count*pe->size+HDR_SIZE,pe->b);//hauke
+    //printf("malloc: ask for %lu bytes, pointer: %p\n", count*pe->size+HDR_SIZE,pe->b);//hauke
     if(pe->b==NULL){ //hauke
         printf("ERROR: malloc failed!\n");
         exit(1);
@@ -224,7 +224,7 @@ void ced_send_event(void){
   if(ced_connect())
     return;
   for(i=0;i<eve.e_count && !problem;i++){
-    printf("i=%i\n",i);
+    //printf("i=%i\n",i);
     pe=eve.e+i;
     if(!pe->count)
       continue;
@@ -236,11 +236,11 @@ void ced_send_event(void){
     //printf("pe->count %i, pe->size %i\n",pe->count, pe->size);
     hdr->size=HDR_SIZE+pe->count*pe->size;
     sent_sum=0;
-    if(hdr->size > 10000000){printf("U P S!  This data set is realy big! (%f kB)(%i counts)\n",(hdr->size)/1024.0,pe->count);}
+    //if(hdr->size > 10000000){printf("U P S!  This data set is realy big! (%f kB)(%i counts)\n",(hdr->size)/1024.0,pe->count);}
     buf=(char *)hdr;
     //printf("hdr->size=%i\n",hdr->size);
     while(sent_sum<hdr->size){
-        printf("sent_sum = %i, hdr->size=%i\n",sent_sum,hdr->size);
+        //printf("sent_sum = %i, hdr->size=%i\n",sent_sum,hdr->size);
 	    sent=write(ced_fd,buf+sent_sum,hdr->size-sent_sum);
         
         /*
