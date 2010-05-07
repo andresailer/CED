@@ -175,6 +175,21 @@ void ced_geobox_r(double * sizes, double * center, double * rotate, unsigned int
   box->layer = layer;
 }
 
+static unsigned GEOBRS_ID=0;
+
+void ced_geobox_r_solid(double * sizes, double * center, double * rotate, unsigned int color, unsigned int layer) {
+  int iDim;
+  CED_GeoBoxR * box = (CED_GeoBoxR*) ced_add(GEOBRS_ID);
+  if ( ! box ) return;
+  for ( iDim = 0; iDim < 3; iDim ++ ) {
+    box->sizes[iDim]   = sizes[iDim];
+    box->center[iDim]  = center[iDim];
+    box->rotate[iDim] = rotate[iDim];
+  }
+  box->color = color;
+  box->layer = layer;
+}
+
 static unsigned LEGEND_ID=0;
 
 void ced_legend(float ene_min, float ene_max, unsigned int color_steps, unsigned int ** rgb_matrix, unsigned int ticks, char scale) {
@@ -257,15 +272,15 @@ void ced_cluellipse_r(float radius, float height, float *center, double *rotate,
 
 
 void ced_register_elements(void){
-  GEOC_ID  		=ced_register_element(sizeof(CED_GeoCylinder),0);
-  GEOCR_ID  	=ced_register_element(sizeof(CED_GeoCylinderR), 0);
-  LINE_ID 		=ced_register_element(sizeof(CED_Line),0);
-  HIT_ID   		=ced_register_element(sizeof(CED_Hit),0);
-  GEOB_ID  		=ced_register_element(sizeof(CED_GeoBox), 0);
-  GEOBR_ID  	=ced_register_element(sizeof(CED_GeoBoxR), 0);
-  CONER_ID  	=ced_register_element(sizeof(CED_ConeR), 0);
-  ELLIPSOID_ID 	=ced_register_element(sizeof(CED_EllipsoidR), 0);
+  GEOC_ID		=ced_register_element(sizeof(CED_GeoCylinder),0);
+  GEOCR_ID	=ced_register_element(sizeof(CED_GeoCylinderR), 0);
+  LINE_ID		=ced_register_element(sizeof(CED_Line),0);
+  HIT_ID		=ced_register_element(sizeof(CED_Hit),0);
+  GEOB_ID		=ced_register_element(sizeof(CED_GeoBox), 0);
+  GEOBR_ID	=ced_register_element(sizeof(CED_GeoBoxR), 0);
+  GEOBRS_ID	=ced_register_element(sizeof(CED_GeoBoxR), 0);
+  CONER_ID	=ced_register_element(sizeof(CED_ConeR), 0);
+  ELLIPSOID_ID	=ced_register_element(sizeof(CED_EllipsoidR), 0);
   CLUELLIPSE_ID =ced_register_element(sizeof(CED_CluEllipseR), 0);
-  LEGEND_ID  	=ced_register_element(sizeof(CED_Legend), 0);
+  LEGEND_ID	=ced_register_element(sizeof(CED_Legend), 0);
 }
-
