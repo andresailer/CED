@@ -18,7 +18,7 @@
 #include <OpenGL/glu.h>
 #include <GLUT/glut.h>
 #else
-#include <GL/gl.h>
+#include "GL/gl.h"
 #include <GL/glu.h>
 #include <GL/glut.h>
 #endif
@@ -343,6 +343,11 @@ static void reshape(int w,int h){
   glLoadIdentity(); 
 }
 
+#ifndef GLUT_WHEEL_UP
+#define GLUT_WHEEL_UP   3
+#define GLUT_WHEEL_DOWN 4
+#endif
+
 static void mouse(int btn,int state,int x,int y){
 
   if(state!=GLUT_DOWN){
@@ -364,6 +369,14 @@ static void mouse(int btn,int state,int x,int y){
     return;
   case GLUT_MIDDLE_BUTTON:
     move_mode=ORIGIN;
+    return;
+  case GLUT_WHEEL_UP:
+    mm.mv.z+=150./mm.sf;
+    glutPostRedisplay();
+    return;
+  case GLUT_WHEEL_DOWN:
+    mm.mv.z-=150./mm.sf;
+    glutPostRedisplay();
     return;
   default:
     break;
@@ -607,7 +620,7 @@ static void input_data(void *data){
 }
 
 
-int main(int argc,char *argv[]){
+ int main(int argc,char *argv[]){
 
   WORLD_SIZE = DEFAULT_WORLD_SIZE ;
 
@@ -662,5 +675,5 @@ int main(int argc,char *argv[]){
 
   glutMainLoop();
 
-  return 0;
-}
+   return 0;
+ }
