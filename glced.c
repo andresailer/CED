@@ -62,9 +62,21 @@ static void set_world_size( float length) {
   axe[1][0] = WORLD_SIZE / 2. ;
   axe[2][1] = WORLD_SIZE / 2. ;
   axe[3][2] = WORLD_SIZE / 2. ;
-}
+};
 
+typedef GLfloat color_t[4];
 
+static color_t bgColors[] = {
+  { 0.0, 0.2, 0.4, 0.0 }, //light blue
+  { 0.0, 0.0, 0.0, 0.0 }, //black
+  { 0.2, 0.2, 0.2, 0.0 }, //gray shades
+  { 0.4, 0.4, 0.4, 0.0 },
+  { 0.6, 0.6, 0.6, 0.0 },
+  { 0.8, 0.8, 0.8, 0.0 },
+  { 1.0, 1.0, 1.0, 0.0 }  //white
+};
+
+static unsigned int iBGcolor = 0;
 
 /* AZ I check for TCP sockets as well,
  * function will return 0 when such "event" happenes */
@@ -138,11 +150,7 @@ static void makeGeometry(void) {
 
 static void init(void){
 
-  //Set background color
-  //FIXME: make this a parameter (probably in MarlinCED?)
-  //glClearColor(0.0,0.2,0.4,0.0);//Dark blue
-  //glClearColor(1.0,1.0,1.0,0.0);//White
-  glClearColor(0.0,0.0,0.0,0.0);//Black
+  glClearColor(bgColors[0][0],bgColors[0][1],bgColors[0][2],bgColors[0][3]); //original setting (light blue)
   glShadeModel(GL_FLAT);
 
   glClearDepth(1);
@@ -271,7 +279,8 @@ static void display_world(void){
   glPopMatrix();
 
   // Draw X,Y,Z ...
-  glColor3f(1.,1.,1.);
+  //glColor3f(1.,1.,1.); //white labels
+  glColor3f(0.,0.,0.); //black labels
   glRasterPos3f(WORLD_SIZE/2.+WORLD_SIZE/8,0.,0.);
   glBitmap(8,12,4,6,0,0,x_bm);
   glRasterPos3f(0.,WORLD_SIZE/2.+WORLD_SIZE/8,0.);
@@ -473,9 +482,17 @@ static void keypressed(unsigned char key,int x,int y){
   } else if(key=='o'){ // o - momentum at ip layer = 6
     toggle_layer(24);
     glutPostRedisplay();
-  } 
-  
-  
+  }
+
+
+  else if(key=='b'){ // toggle background color
+    ++iBGcolor;
+    if (iBGcolor >= sizeof(bgColors)/sizeof(color_t)) iBGcolor = 0;
+    glClearColor(bgColors[iBGcolor][0],bgColors[iBGcolor][1],bgColors[iBGcolor][2],bgColors[iBGcolor][3]);
+    glutPostRedisplay();
+    printf("using color %u\n",iBGcolor);
+  }
+
 }
 
 static void SpecialKey( int key, int x, int y ){
