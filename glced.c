@@ -145,6 +145,13 @@ static void init(void){
   glClearColor(0.0,0.0,0.0,0.0);//Black
   glShadeModel(GL_FLAT);
 
+  glClearDepth(1);
+
+  glEnable(GL_DEPTH_TEST); //activate 'depth-test'
+  glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //clear buffers
+
+  glDepthFunc(GL_LESS);
+
   glEnableClientState(GL_VERTEX_ARRAY);
   // GL_NORMAL_ARRAY GL_COLOR_ARRAY GL_TEXTURE_COORD_ARRAY,GL_EDGE_FLAG_ARRAY
 
@@ -177,8 +184,8 @@ static struct {
     GLfloat sf_start;
     Point mv_start;
 } mm = {
-  -20.,
-  20.,
+  30.,
+  150.,
   0.2, //SJA:FIXED set redraw scale a lot smaller
   { 0., 0., 0. },
   0.,
@@ -234,8 +241,12 @@ static void display_world(void){
   glBegin(GL_LINES);
   glVertex3fv(axe[0]);
   glVertex3fv(axe[1]);
+  glEnd();
+  glBegin(GL_LINES);
   glVertex3fv(axe[0]);
   glVertex3fv(axe[2]);
+  glEnd();
+  glBegin(GL_LINES);
   glVertex3fv(axe[0]);
   glVertex3fv(axe[3]);
   glEnd();
@@ -249,7 +260,7 @@ static void display_world(void){
 
   glPushMatrix();
   glTranslatef(0.,WORLD_SIZE/2.-WORLD_SIZE/100.,0.);
-  glRotatef(180.,.0,1.0,1.0);
+  glRotatef(-90.,1.0,0.,0.);
   axe_arrow();
   glPopMatrix();
 
@@ -287,7 +298,7 @@ static void display_world(void){
 
 static void display(void){
 
-  glClear(GL_COLOR_BUFFER_BIT);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   glPushMatrix();
 
@@ -614,7 +625,7 @@ int main(int argc,char *argv[]){
   glut_tcp_server(7286,input_data);
 
   glutInit(&argc,argv);
-  glutInitDisplayMode(GLUT_DOUBLE|GLUT_RGB);
+  glutInitDisplayMode(GLUT_DOUBLE|GLUT_RGB|GLUT_DEPTH);
 /*   glutInitWindowSize(600,600); // change to smaller window size */
 /*   glutInitWindowPosition(500,0); */
   glutCreateWindow("C Event Display (CED)");
