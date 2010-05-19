@@ -216,6 +216,7 @@ void ced_cone_r(float base, float height, double *center, double *rotate, unsign
 	cone->base = base;
   	cone->height = height;
  	cone->layer = layer;
+    cone->lcioid = 0;
  	
   	const unsigned int dim = 3;
   	const unsigned int channel = 4;
@@ -229,6 +230,26 @@ void ced_cone_r(float base, float height, double *center, double *rotate, unsign
 	}
 }
 
+void ced_cone_r_ID(float base, float height, double *center, double *rotate, unsigned int layer, float *RGBAcolor, int lcioid) {
+	CED_ConeR * cone = (CED_ConeR*) ced_add(CONER_ID);
+	if ( ! cone ) return;
+	
+	cone->base = base;
+  	cone->height = height;
+ 	cone->layer = layer;
+    cone->lcioid = lcioid;
+ 	
+  	const unsigned int dim = 3;
+  	const unsigned int channel = 4;
+  	int i, j;
+  	for (i = 0; i < dim; i ++ ) {
+		cone->center[i] = center[i];
+		cone->rotate[i] = rotate[i];
+	}
+	for (j = 0; j < channel; j ++ ) {
+		cone->RGBAcolor[j] = RGBAcolor[j];
+	}
+}
 static unsigned ELLIPSOID_ID=0;
 
 void ced_ellipsoid_r(double *size, double *center, double *rotate, unsigned int layer, int color) {
@@ -245,6 +266,24 @@ void ced_ellipsoid_r(double *size, double *center, double *rotate, unsigned int 
 	}
 	eli->color = color;
 	eli->layer = layer;
+    eli->lcioid = 0;
+}
+
+void ced_ellipsoid_r_ID(double *size, double *center, double *rotate, unsigned int layer, int color, int lcioID) {
+	
+	CED_EllipsoidR * eli = (CED_EllipsoidR*) ced_add(ELLIPSOID_ID);
+	if ( ! eli ) return;	
+ 	
+  	const unsigned int dim = 3;
+  	int i;
+  	for (i = 0; i < dim; i ++ ) {
+		eli->center[i] = center[i];
+		eli->rotate[i] = rotate[i];
+		eli->size[i] = size[i];
+	}
+	eli->color = color;
+	eli->layer = layer;
+    eli->lcioid = lcioID;
 }
 
 static unsigned CLUELLIPSE_ID=0;
@@ -264,6 +303,25 @@ void ced_cluellipse_r(float radius, float height, float *center, double *rotate,
 	eli->height = height;
 	eli->layer = layer;
 	eli->color = color;
+    eli->lcioid=0; //hauke
+}
+
+void ced_cluellipse_r_ID(float radius, float height, float *center, double *rotate, unsigned int layer, int color, int lcioid) { //hauke
+	
+	CED_CluEllipseR * eli = (CED_CluEllipseR*) ced_add(CLUELLIPSE_ID);
+	if ( ! eli ) return;	
+ 	
+  	const unsigned int dim = 3;
+  	int i;
+  	for (i = 0; i < dim; i ++ ) {
+		eli->center[i] = center[i];
+		eli->rotate[i] = rotate[i];
+	}
+	eli->radius = radius;
+	eli->height = height;
+	eli->layer = layer;
+	eli->color = color;
+    eli->lcioid=lcioid;
 }
 
 
