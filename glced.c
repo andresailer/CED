@@ -18,7 +18,7 @@
 #include <OpenGL/glu.h>
 #include <GLUT/glut.h>
 #else
-#include <GL/gl.h>
+#include "GL/gl.h"
 #include <GL/glu.h>
 #include <GL/glut.h>
 #endif
@@ -71,7 +71,7 @@ static void set_world_size( float length) {
   axe[1][0] = WORLD_SIZE / 2. ;
   axe[2][1] = WORLD_SIZE / 2. ;
   axe[3][2] = WORLD_SIZE / 2. ;
-}
+};
 
 //hauke
 static void set_bg_color(float one, float two, float three, float four){
@@ -81,6 +81,19 @@ static void set_bg_color(float one, float two, float three, float four){
     BG_COLOR[3]=four;
 }
 
+typedef GLfloat color_t[4];
+
+static color_t bgColors[] = {
+  { 0.0, 0.2, 0.4, 0.0 }, //light blue
+  { 0.0, 0.0, 0.0, 0.0 }, //black
+  { 0.2, 0.2, 0.2, 0.0 }, //gray shades
+  { 0.4, 0.4, 0.4, 0.0 },
+  { 0.6, 0.6, 0.6, 0.0 },
+  { 0.8, 0.8, 0.8, 0.0 },
+  { 1.0, 1.0, 1.0, 0.0 }  //white
+};
+
+static unsigned int iBGcolor = 0;
 
 /* AZ I check for TCP sockets as well,
  * function will return 0 when such "event" happenes */
@@ -161,7 +174,18 @@ static void init(void){
   //glClearColor(0.0,0.0,0.0,0.0);//Black
 
   glClearColor(BG_COLOR[0],BG_COLOR[1], BG_COLOR[2], BG_COLOR[3]);
+
+  // calice
+  //glClearColor(bgColors[0][0],bgColors[0][1],bgColors[0][2],bgColors[0][3]); //original setting (light blue)
+
   glShadeModel(GL_FLAT);
+
+  glClearDepth(1);
+
+  glEnable(GL_DEPTH_TEST); //activate 'depth-test'
+  glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //clear buffers
+
+  glDepthFunc(GL_LESS);
 
   glEnableClientState(GL_VERTEX_ARRAY);
   // GL_NORMAL_ARRAY GL_COLOR_ARRAY GL_TEXTURE_COORD_ARRAY,GL_EDGE_FLAG_ARRAY
@@ -195,8 +219,8 @@ static struct {
     GLfloat sf_start;
     Point mv_start;
 } mm = {
-  -20.,
-  20.,
+  30.,
+  150.,
   0.2, //SJA:FIXED set redraw scale a lot smaller
   { 0., 0., 0. },
   0.,
@@ -252,8 +276,12 @@ static void display_world(void){
   glBegin(GL_LINES);
   glVertex3fv(axe[0]);
   glVertex3fv(axe[1]);
+  glEnd();
+  glBegin(GL_LINES);
   glVertex3fv(axe[0]);
   glVertex3fv(axe[2]);
+  glEnd();
+  glBegin(GL_LINES);
   glVertex3fv(axe[0]);
   glVertex3fv(axe[3]);
   glEnd();
@@ -267,7 +295,7 @@ static void display_world(void){
 
   glPushMatrix();
   glTranslatef(0.,WORLD_SIZE/2.-WORLD_SIZE/100.,0.);
-  glRotatef(180.,.0,1.0,1.0);
+  glRotatef(-90.,1.0,0.,0.);
   axe_arrow();
   glPopMatrix();
 
@@ -278,7 +306,8 @@ static void display_world(void){
   glPopMatrix();
 
   // Draw X,Y,Z ...
-  glColor3f(1.,1.,1.);
+  //glColor3f(1.,1.,1.); //white labels
+  glColor3f(0.,0.,0.); //black labels
   glRasterPos3f(WORLD_SIZE/2.+WORLD_SIZE/8,0.,0.);
   glBitmap(8,12,4,6,0,0,x_bm);
   glRasterPos3f(0.,WORLD_SIZE/2.+WORLD_SIZE/8,0.);
@@ -305,7 +334,7 @@ static void display_world(void){
 
 static void display(void){
 
-  glClear(GL_COLOR_BUFFER_BIT);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   glPushMatrix();
 
@@ -369,6 +398,13 @@ static void mouse(int btn,int state,int x,int y){
   }
 //end hauke
 
+//#ifndef GLUT_WHEEL_UP
+//#define GLUT_WHEEL_UP   3
+//#define GLUT_WHEEL_DOWN 4
+//#endif
+
+
+
 
   if(state!=GLUT_DOWN){
     move_mode=NO_MOVE;
@@ -404,22 +440,38 @@ static void mouse(int btn,int state,int x,int y){
   case GLUT_MIDDLE_BUTTON:
     move_mode=ORIGIN;
     return;
+  //case GLUT_WHEEL_UP:
+  //  mm.mv.z+=150./mm.sf;
+  //  glutPostRedisplay();
+  //  return;
+  //case GLUT_WHEEL_DOWN:
+  //  mm.mv.z-=150./mm.sf;
+  //  glutPostRedisplay();
+  //  return;
   default:
     break;
   }
 //hauke
   if(btn== mouseWheelUp){
+    //calice
+    //mm.mv.z+=150./mm.sf;
+    
+    //hauke
     mm.sf+=(100.)/window_height;
-    glutPostRedisplay();
     if(mm.sf<0.2){ mm.sf=0.2; }
     else if(mm.sf>20.){ mm.sf=20.; }
+    glutPostRedisplay();
     return;
   }
   if(btn== mouseWheelDown){
+    //calice
+    //mm.mv.z-=150./mm.sf;
+
+    // hauke
     mm.sf+=(-100.)/window_height;
-    glutPostRedisplay();
     if(mm.sf<0.2){ mm.sf=0.2; }
     else if(mm.sf>20.){ mm.sf=20.; }
+    glutPostRedisplay();
     return;
   }
 //end hauke
@@ -545,9 +597,17 @@ static void keypressed(unsigned char key,int x,int y){
   } else if(key=='o'){ // o - momentum at ip layer = 6
     toggle_layer(24);
     glutPostRedisplay();
-  } 
-  
-  
+  }
+
+
+  else if(key=='b'){ // toggle background color
+    ++iBGcolor;
+    if (iBGcolor >= sizeof(bgColors)/sizeof(color_t)) iBGcolor = 0;
+    glClearColor(bgColors[iBGcolor][0],bgColors[iBGcolor][1],bgColors[iBGcolor][2],bgColors[iBGcolor][3]);
+    glutPostRedisplay();
+    printf("using color %u\n",iBGcolor);
+  }
+
 }
 
 static void SpecialKey( int key, int x, int y ){
@@ -663,10 +723,11 @@ static void input_data(void *data){
 }
 
 
-int main(int argc,char *argv[]){
+ int main(int argc,char *argv[]){
 
   WORLD_SIZE = DEFAULT_WORLD_SIZE ;
-  set_bg_color(0.0,0.0,0.0,0.0); //set to default (black)
+  //set_bg_color(0.0,0.0,0.0,0.0); //set to default (black)
+  set_bg_color(bgColors[0][0],bgColors[0][1],bgColors[0][2],bgColors[0][3]); //set to default (light blue [0.0, 0.2, 0.4, 0.0])
 
   char hex[]={'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'};
   int tmp[6];
@@ -744,7 +805,7 @@ int main(int argc,char *argv[]){
   glut_tcp_server(7286,input_data);
 
   glutInit(&argc,argv);
-  glutInitDisplayMode(GLUT_DOUBLE|GLUT_RGB);
+  glutInitDisplayMode(GLUT_DOUBLE|GLUT_RGB|GLUT_DEPTH);
 /*   glutInitWindowSize(600,600); // change to smaller window size */
 /*   glutInitWindowPosition(500,0); */
   glutCreateWindow("C Event Display (CED)");
@@ -768,5 +829,5 @@ int main(int argc,char *argv[]){
 
   glutMainLoop();
 
-  return 0;
-}
+   return 0;
+ }
