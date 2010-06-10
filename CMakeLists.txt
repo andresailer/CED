@@ -134,31 +134,117 @@ INSTALL( TARGETS lib_CED DESTINATION lib PERMISSIONS
 # ------------------ GLCED --------------------------
 IF( CED_SERVER )
 
-    # GLUT is required for building glced
-    FIND_PACKAGE( GLUT REQUIRED )
-    INCLUDE_DIRECTORIES( ${GLUT_INCLUDE_DIR} )
+    FIND_PACKAGE( GLUT )
 
-    ADD_EXECUTABLE( glced glced.c ced_srv.c )
-    TARGET_LINK_LIBRARIES( glced lib_CED ${GLUT_glut_LIBRARY} )
+    #SET( GLUT_FOUND FALSE )
+    IF( NOT GLUT_FOUND )
+        
+        MESSAGE( WARNING "
+            GLUT was not found on your system !
 
-    # MAC ONLY
-    IF(APPLE)
-        FIND_PACKAGE( OpenGL REQUIRED )
-        TARGET_LINK_LIBRARIES( glced ${OPENGL_LIBRARIES} )
-    ENDIF(APPLE)
+            If you have root privileges it is recommended to install an
+            operating system specific package, e.g.:
+              # sudo apt-get install freeglut3  # debian/ubuntu
+              # yum install freeglut-devel      # scientific linux /redhat
+            reconfigure CED afterwards.
+            
+            However if you do not have root privileges you can let cmake
+            install freeglut for you (cmake version has to be >= 2.8).
+            
+            If none of the above options are possible, you can still get
+            the freeglut source code from http://freeglut.sourceforge.net
+            and install it yourself.
+            
+            If cmake has problems finding glut, you can set two special
+            variables before calling cmake to locate libraries / header
+            files in custom places, e.g.:
+            export CMAKE_LIBRARY_PATH=$HOME/myglut/lib
+            export CMAKE_INCLUDE_PATH=$HOME/myglut/include
+            "
+        )
 
-    INSTALL( TARGETS glced DESTINATION bin )
+        IF( "${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}" LESS 2.8 )
+            MESSAGE( WARNING " CMake version < 2.8 - cannot configure and install GLUT (freeglut) from source" )
+        ELSE()
+            include( ExternalProject )
+
+            SET( GLUT_EXTERNAL TRUE )
+
+            IF( NOT DEFINED GLUT_VERSION)
+                SET( GLUT_VERSION "2.6.0" )
+            ENDIF()
+
+            #SET( GLUT_DOWNLOAD_MIRROR "http://sourceforge.net/projects/freeglut/files/freeglut" )
+            SET( GLUT_DOWNLOAD_MIRROR "http://ignum.dl.sourceforge.net/project/freeglut/freeglut" )
+            SET( GLUT_DOWNLOAD_URL ${GLUT_DOWNLOAD_MIRROR}/freeglut-${GLUT_VERSION}.tar.gz )
+            #SET( GLUT_INSTALL_PREFIX ${PROJECT_BINARY_DIR} )
+            SET( GLUT_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX} )
+            SET( GLUT_CONFIGURE_COMMAND ./configure --prefix=${GLUT_INSTALL_PREFIX} )
+
+            MESSAGE( STATUS "GLUT (freeglut) will be configured and built from source" )
+            MESSAGE( STATUS "GLUT_VERSION: ${GLUT_VERSION} (chage with cmake -DGLUT_VERSION=2.6.0)" )
+            MESSAGE( STATUS "GLUT_DOWNLOAD_MIRROR: ${GLUT_DOWNLOAD_MIRROR}" )
+            MESSAGE( STATUS "GLUT_DOWNLOAD_URL: ${GLUT_DOWNLOAD_URL}" )
+            MESSAGE( STATUS "GLUT_INSTALL_PREFIX: ${GLUT_INSTALL_PREFIX}" )
+            MESSAGE( STATUS "GLUT_CONFIGURE_COMMAND ${GLUT_CONFIGURE_COMMAND}" )
+
+            ExternalProject_Add( freeglut
+                URL ${GLUT_DOWNLOAD_URL}
+                CONFIGURE_COMMAND ${GLUT_CONFIGURE_COMMAND}
+                BUILD_IN_SOURCE 1
+                INSTALL_COMMAND make install
+            )
+            # FIXME use FIND_XXX
+            SET( GLUT_INCLUDE_DIR ${GLUT_INSTALL_PREFIX}/include )
+            SET( GLUT_glut_LIBRARY ${GLUT_INSTALL_PREFIX}/lib/libglut.so )
+            SET( GLUT_FOUND TRUE )
+        ENDIF()
+    ENDIF()
+
+
+    FIND_PACKAGE( OpenGL )
+
+    IF( NOT OPENGL_GLU_FOUND )
+        MESSAGE( WARNING " OpenGL GLU library not found on your system" )
+    ENDIF()
+
+
+    IF( GLUT_FOUND AND OPENGL_FOUND )
+        INCLUDE_DIRECTORIES( ${GLUT_INCLUDE_DIR} )
+        ADD_EXECUTABLE( glced glced.c ced_srv.c )
+        IF( GLUT_EXTERNAL )
+            ADD_DEPENDENCIES( glced freeglut )
+        ENDIF()
+        # mac needs more than the OPENGL_glu_LIBRARY
+        #TARGET_LINK_LIBRARIES( glced lib_CED ${GLUT_glut_LIBRARY} ${OPENGL_glu_LIBRARY} )
+        TARGET_LINK_LIBRARIES( glced lib_CED ${GLUT_glut_LIBRARY} ${OPENGL_LIBRARIES} )
+        INSTALL( TARGETS glced DESTINATION bin )
+    ELSE()
+        MESSAGE( ERROR " GLUT or OpenGL GLU component missing. cannot build glced. CED_SERVER set to OFF" )
+        SET( CED_SERVER OFF )
+    ENDIF()
 
 ENDIF( CED_SERVER )
 
 
 
 # ------------------ CED TESTS ------------------
-ADD_EXECUTABLE( test_ced test_ced.c )
-TARGET_LINK_LIBRARIES( test_ced lib_CED )
+# all test files should start with prefix test_
+# e.g. test_ced.c test_millionhits.c
+FILE( GLOB test_srcs ./test_*.c )
 
-INSTALL( TARGETS test_ced DESTINATION bin )
+FOREACH( test_src_filename ${test_srcs} )
 
+    # get filename without extension, i.e.:
+    # test_ced.c -> test_ced
+    GET_FILENAME_COMPONENT( test_target ${test_src_filename} NAME_WE )
+
+    ADD_EXECUTABLE( ${test_target} ${test_src_filename} )
+    TARGET_LINK_LIBRARIES( ${test_target} lib_CED )
+
+    INSTALL( TARGETS ${test_target} DESTINATION bin )
+
+ENDFOREACH()
 
 
 ###################################################################################
