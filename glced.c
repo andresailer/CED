@@ -44,6 +44,41 @@
 #include <sys/time.h>
 #include <time.h>
 
+#define BGCOLOR_BLACK   10
+#define BGCOLOR_BLUE    11
+#define BGCOLOR_WHITE   12
+
+#define VIEW_FISHEYE    20
+#define VIEW_FRONT      21
+#define VIEW_SIDE       22
+#define VIEW_ZOOM_IN    23
+#define VIEW_ZOOM_OUT   24
+
+#define LAYER_0         30
+#define LAYER_1         31
+#define LAYER_2         32
+#define LAYER_3         33
+#define LAYER_4         34
+#define LAYER_5         35
+#define LAYER_6         36
+#define LAYER_7         37
+#define LAYER_8         38
+#define LAYER_9         39
+#define LAYER_10        40
+#define LAYER_11        41
+#define LAYER_12        42
+#define LAYER_13        43
+#define LAYER_14        44
+#define LAYER_15        45
+#define LAYER_16        46
+#define LAYER_17        47
+#define LAYER_18        48
+#define LAYER_19        49
+
+#define HELP            100
+
+static int helpWindow=-1;
+static int showHelp=1;
 
 #define DEFAULT_WORLD_SIZE 1000.  //SJA:FIXED Reduce world size to give better scale
 
@@ -80,6 +115,8 @@ static void set_bg_color(float one, float two, float three, float four){
     BG_COLOR[2]=three;
     BG_COLOR[3]=four;
 }
+
+
 
 typedef GLfloat color_t[4];
 
@@ -361,10 +398,13 @@ static void display(void){
 ***************************************/
 static void mouseWheel(int wheel, int direction, int x, int y){
   //printf("mousewheel: direction %i, wheel %i, direction %i, x %i, y %i\n", direction, wheel, x, y);
-  mm.sf+=(20.*direction)/window_height;
+  //mm.sf+=(20.*direction)/window_height;
+  mm.sf += mm.sf*10*direction/window_height;
+
+
   glutPostRedisplay();
-  if(mm.sf<0.2){ mm.sf=0.2; }
-  else if(mm.sf>20.){ mm.sf=20.; }
+  //if(mm.sf<0.2){ mm.sf=0.2; }
+  //else if(mm.sf>20.){ mm.sf=20.; }
 }
 
 
@@ -451,29 +491,35 @@ static void mouse(int btn,int state,int x,int y){
   default:
     break;
   }
+
+
 //hauke
-  if(btn== mouseWheelUp){
+if (btn == mouseWheelUp){
     //calice
     //mm.mv.z+=150./mm.sf;
     
     //hauke
-    mm.sf+=(100.)/window_height;
-    if(mm.sf<0.2){ mm.sf=0.2; }
-    else if(mm.sf>20.){ mm.sf=20.; }
+    //mm.sf+=(100.)/window_height;
+    mm.sf += mm.sf*50./window_height;
+
+/*    if(mm.sf<0.2){ mm.sf=0.2; }
+    else if(mm.sf>20.){ mm.sf=20.; } */
     glutPostRedisplay();
     return;
-  }
-  if(btn== mouseWheelDown){
+}
+
+if (btn ==  mouseWheelDown){
     //calice
     //mm.mv.z-=150./mm.sf;
 
     // hauke
-    mm.sf+=(-100.)/window_height;
-    if(mm.sf<0.2){ mm.sf=0.2; }
-    else if(mm.sf>20.){ mm.sf=20.; }
+    //mm.sf+=(-100.)/window_height;
+    mm.sf -= mm.sf*50.0/window_height;
+/*    if(mm.sf<0.2){ mm.sf=0.2; }
+    else if(mm.sf>20.){ mm.sf=20.; } */
     glutPostRedisplay();
     return;
-  }
+}
 //end hauke
 }
 
@@ -578,6 +624,8 @@ static void keypressed(unsigned char key,int x,int y){
   } else if(key=='`'){
     show_all_layers();
     glutPostRedisplay();
+
+
   }
   
   // SD: added layers
@@ -606,6 +654,8 @@ static void keypressed(unsigned char key,int x,int y){
     glClearColor(bgColors[iBGcolor][0],bgColors[iBGcolor][1],bgColors[iBGcolor][2],bgColors[iBGcolor][3]);
     glutPostRedisplay();
     printf("using color %u\n",iBGcolor);
+  } else if(key == 'h'){
+        toggleHelpWindow();
   }
 
 }
@@ -723,6 +773,173 @@ static void input_data(void *data){
 }
 
 
+void display2(void){
+    glClearColor(1.0, 1.0, 0.0, 1.0);
+    glClear(GL_COLOR_BUFFER_BIT);
+    glLoadIdentity();
+    //printf("display2\n");
+    //glFlush();
+    glutSwapBuffers();
+}
+
+void writeString(char *str,int x,int y){
+    int i;
+   // glPushMatrix();
+    //glTranslatef(x, y, 0);
+    //glColor3f(1.0, 0.0, 0.0);//print timer in red
+    glColor3f(0, 0.0, 0.0);//print timer in red
+    glRasterPos2f(x, y);
+
+    for(i=0;str[i];i++){
+       //glRasterPos2f(x+i*10,y);
+       glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_10,str[i]);
+       glutStrokeCharacter(GLUT_STROKE_ROMAN, str[i]); 
+       printf("char = %c", str[i]);
+    }
+    //glPopMatrix();
+}
+void toggleHelpWindow(){
+    int mainWindow=glutGetWindow();
+    if(helpWindow < 0){
+        helpWindow = glutCreateWindow("Help");
+        glutDisplayFunc(display2);
+        glutReshapeFunc(reshape);
+        glutMotionFunc(motion);
+        glutSetWindow(helpWindow);
+        writeString("hello world0",255,255);
+        writeString("hello world0",0,255);
+        writeString("hello world0",255,0);
+        writeString("hello world0",0,0);
+        glutPostRedisplay();
+    }else if(showHelp){
+        glutSetWindow(helpWindow);
+        glutHideWindow();
+        showHelp=0;
+    }else{
+        glutSetWindow(helpWindow);
+        glutShowWindow();
+        showHelp=1;
+    }
+    glutSetWindow(mainWindow);
+    //glutHideWindow();
+    //glutShowWindow();
+
+}
+
+
+
+void selectFromMenu(int id){ //hauke
+    switch(id){
+        case BGCOLOR_BLACK:
+            glClearColor(0,0,0,0);
+            break;
+        case BGCOLOR_BLUE:
+            glClearColor(0,0.2,0.4,0);
+            break;
+        case BGCOLOR_WHITE:
+            glClearColor(1,1,1,0);
+            break;
+
+        case VIEW_FISHEYE:
+            if(fisheye_alpha==0.0){
+                fisheye_alpha = 1e-3;
+                FISHEYE_WORLD_SIZE = WORLD_SIZE/(1.0+WORLD_SIZE*fisheye_alpha);
+                set_world_size(WORLD_SIZE);
+                //printf("Fisheye view on\n");
+            }
+            else{
+                fisheye_alpha = 0.0;
+                set_world_size(FISHEYE_WORLD_SIZE);
+                //printf("Fisheye view off\n");
+            }
+            break;
+        case VIEW_FRONT:
+            mm=mm_reset;
+            mm.ha=mm.va=0.;
+            break;
+        case VIEW_SIDE:
+            mm=mm_reset;
+            mm.ha=90.;
+            mm.va=0.;
+            break;
+        case VIEW_ZOOM_IN:
+            mm.sf += mm.sf*400.0/window_height;
+            break;
+        case VIEW_ZOOM_OUT:
+            mm.sf -= mm.sf*400.0/window_height;
+            break;
+        case LAYER_0:
+            toggle_layer(0);
+            break;
+        case LAYER_1:
+            toggle_layer(1);
+            break;
+        case LAYER_2:
+            toggle_layer(2);
+            break;
+        case LAYER_3:
+            toggle_layer(3);
+            break;
+    
+        case HELP:
+            toggleHelpWindow();
+            //glutDestroyWindow(winid);
+            break;
+    }
+//hierhier
+    glutPostRedisplay();
+    printf("selected id %i\n",id); 
+}
+
+int buildMenuPopup(void){ //hauke
+    int menu;
+    int subMenu1;
+    int subMenu2;
+    int subMenu3;
+
+    subMenu1 = glutCreateMenu(selectFromMenu);
+    glutAddMenuEntry("Black",BGCOLOR_BLACK);
+    glutAddMenuEntry("Blue",BGCOLOR_BLUE);
+    glutAddMenuEntry("White",BGCOLOR_WHITE);
+
+    subMenu2 = glutCreateMenu(selectFromMenu);
+    glutAddMenuEntry("Front view [f]", VIEW_FRONT);
+    glutAddMenuEntry("Side view [s]", VIEW_SIDE);
+    glutAddMenuEntry("Fisheye [v]",VIEW_FISHEYE);
+    glutAddMenuEntry("Zoom in", VIEW_ZOOM_IN);
+    glutAddMenuEntry("Zoom out", VIEW_ZOOM_OUT);
+
+    subMenu3 = glutCreateMenu(selectFromMenu);
+    glutAddMenuEntry("Layer 0 [0]",LAYER_0);
+    glutAddMenuEntry("Layer 1 [1]",LAYER_1);
+    glutAddMenuEntry("Layer 2 [2]",LAYER_2);
+    glutAddMenuEntry("Layer 3 [3]",LAYER_3);
+    glutAddMenuEntry("Layer 4 [4]",LAYER_4);
+    glutAddMenuEntry("Layer 5 [5]",LAYER_5);
+    glutAddMenuEntry("Layer 6 [6]",LAYER_6);
+    glutAddMenuEntry("Layer 7 [7]",LAYER_7);
+    glutAddMenuEntry("Layer 8 [8]",LAYER_8);
+    glutAddMenuEntry("Layer 9 [9]",LAYER_9);
+    glutAddMenuEntry("Layer 10 []",LAYER_10);
+    glutAddMenuEntry("Layer 11 []",LAYER_11);
+    glutAddMenuEntry("Layer 12 []",LAYER_12);
+    glutAddMenuEntry("Layer 13 []",LAYER_13);
+    glutAddMenuEntry("Layer 14 []",LAYER_14);
+    glutAddMenuEntry("Layer 15 []",LAYER_15);
+    glutAddMenuEntry("Layer 16 []",LAYER_16);
+    glutAddMenuEntry("Layer 17 []",LAYER_17);
+
+
+    menu=glutCreateMenu(selectFromMenu);
+    glutAddSubMenu("View", subMenu2);
+    glutAddSubMenu("Layers", subMenu3);
+    glutAddSubMenu("Background Color", subMenu1);
+    glutAddMenuEntry("Help [h]",HELP);
+
+
+    return menu;
+}
+
  int main(int argc,char *argv[]){
 
   WORLD_SIZE = DEFAULT_WORLD_SIZE ;
@@ -820,6 +1037,9 @@ static void input_data(void *data){
   glutSpecialFunc(SpecialKey);
   glutMotionFunc(motion);
 
+  buildMenuPopup();
+  glutAttachMenu(GLUT_RIGHT_BUTTON);
+  
   //hauke 08.02.2010 
 //  glutMouseWheelFunc(mouseWheel);
 
