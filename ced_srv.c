@@ -604,6 +604,10 @@ static void ced_draw_text(CED_TEXT *text){
     int startY=-700;
     char message[200];
 	int font=(int)GLUT_BITMAP_TIMES_ROMAN_10; //default font
+
+
+    printf("id: %i text: %s\n", text->id, text->text);
+
     //renderBitmapString(SELECTED_X*10,SELECTED_Y*10,(void *)font,text->text);
     glLoadIdentity();
     int i,j;
@@ -623,7 +627,13 @@ static void ced_draw_text(CED_TEXT *text){
 
     glEnd();
 
-    //printf("render text\n");
+}
+
+
+static unsigned LAYER_TEXT_ID=0;
+static void print_layer_text(LAYER_TEXT *obj){
+    printf("HELLO WORLD\n");
+    printf("layer %i text: %s\n", obj->id, obj->str);
 }
 
 //end hauke
@@ -1137,7 +1147,8 @@ void ced_register_elements(void){
   CLUELLIPSE_ID = ced_register_element(sizeof(CED_CluEllipseR),(ced_draw_cb)ced_draw_cluellipse_r);
   /** due to an issue w/ drawing the legend (in 2D) this has to come last ! */
   LEGEND_ID  =ced_register_element(sizeof(CED_Legend),(ced_draw_cb)ced_draw_legend);
-  TEXT_ID   =ced_register_element(sizeof(CED_TEXT),(ced_draw_cb)ced_draw_text); //hauke
-
+ // TEXT_ID   =ced_register_element(sizeof(CED_TEXT),(ced_draw_cb)ced_draw_text); //hauke
+  TEXT_ID   =ced_register_element(sizeof(CED_TEXT),(ced_draw_cb)print_layer_text); //hauke
+  //LAYER_TEXT_ID   =ced_register_element(sizeof(LAYER_TEXT),(ced_draw_cb)print_layer_text); //hauke
 }
 

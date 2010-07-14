@@ -192,12 +192,24 @@ void ced_legend(float ene_min, float ene_max, unsigned int color_steps, unsigned
 //hauke 
 static unsigned TEXT_ID=0;
 
-void ced_writeText(char *message) {
+void ced_describe_layer(char *message, int id) {
 	CED_TEXT *text = (CED_TEXT*) ced_add(TEXT_ID);
 	if ( !text ) return;
     strncpy(text->text,message,199);
+    text->id=id;
     //text->x=xCordinate;
     //text->y=yCordinate;
+}
+
+
+static unsigned LAYER_TEXT_ID=0;
+
+void ced_layer_text(char *message, int id) {
+	LAYER_TEXT *obj = (LAYER_TEXT*) ced_add(LAYER_TEXT_ID);
+	if ( !obj ){ printf("ced_layer_text FAILED\n"); return;}
+    strncpy(obj->str,message,199);
+    obj->id=id;
+    //printf("ced_layer_text\n");
 }
 //end hauke
 
