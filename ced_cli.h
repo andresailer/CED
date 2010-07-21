@@ -197,8 +197,6 @@ void ced_geobox_r_solid(double * sizes, double * center, double * rotate, unsign
   typedef struct{
     char text[200];
     int id;
-//    int x;
-//    int y;
   } CED_TEXT; 
 
 void ced_describe_layer(char *, int); //, int, int);

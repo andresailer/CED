@@ -194,7 +194,12 @@ static unsigned TEXT_ID=0;
 
 void ced_describe_layer(char *message, int id) {
 	CED_TEXT *text = (CED_TEXT*) ced_add(TEXT_ID);
-	if ( !text ) return;
+	if(!text){
+        printf("cant register CED_TEXT");  
+        return;
+    }
+    printf("ced_describe layer id=%i\n", TEXT_ID);
+
     strncpy(text->text,message,199);
     text->id=id;
     //text->x=xCordinate;
@@ -206,7 +211,10 @@ static unsigned LAYER_TEXT_ID=0;
 
 void ced_layer_text(char *message, int id) {
 	LAYER_TEXT *obj = (LAYER_TEXT*) ced_add(LAYER_TEXT_ID);
-	if ( !obj ){ printf("ced_layer_text FAILED\n"); return;}
+	if (!obj){ 
+        printf("ced_layer_text FAILED\n"); 
+        return;
+    }
     strncpy(obj->str,message,199);
     obj->id=id;
     //printf("ced_layer_text\n");
@@ -299,6 +307,6 @@ void ced_register_elements(void){
   CONER_ID	=ced_register_element(sizeof(CED_ConeR), 0);
   ELLIPSOID_ID	=ced_register_element(sizeof(CED_EllipsoidR), 0);
   CLUELLIPSE_ID =ced_register_element(sizeof(CED_CluEllipseR), 0);
-  LEGEND_ID	=ced_register_element(sizeof(CED_Legend), 0);
   TEXT_ID       =ced_register_element(sizeof(CED_TEXT),0); //hauke
+  LEGEND_ID	=ced_register_element(sizeof(CED_Legend), 0);
 }
