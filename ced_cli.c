@@ -198,7 +198,7 @@ void ced_describe_layer(char *message, int id) {
         printf("cant register CED_TEXT");  
         return;
     }
-    printf("ced_describe layer id=%i\n", TEXT_ID);
+    //printf("ced_describe layer id=%i\n", TEXT_ID);
 
     strncpy(text->text,message,199);
     text->id=id;

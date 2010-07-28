@@ -44,15 +44,29 @@
 #include <sys/time.h>
 #include <time.h>
 
-#define BGCOLOR_BLACK   10
-#define BGCOLOR_BLUE    11
-#define BGCOLOR_WHITE   12
+#define BGCOLOR_WHITE           1000
+#define BGCOLOR_SILVER          1001
+#define BGCOLOR_DIMGRAY         1002
+#define BGCOLOR_BLACK           1003
+#define BGCOLOR_LIGHTSTEELBLUE  1004
+#define BGCOLOR_STEELBLUE       1005
+#define BGCOLOR_BLUE            1006
+#define BGCOLOR_SEAGREEN        1007
+#define BGCOLOR_ORANGE          1008
+#define BGCOLOR_YELLOW          1009
+#define BGCOLOR_VIOLET          1010
+
+#define BGCOLOR_GAINSBORO       1011
+#define BGCOLOR_LIGHTGREY       1012
+#define BGCOLOR_DARKGRAY        1013
+#define BGCOLOR_GRAY            1014
 
 #define VIEW_FISHEYE    20
 #define VIEW_FRONT      21
 #define VIEW_SIDE       22
 #define VIEW_ZOOM_IN    23
 #define VIEW_ZOOM_OUT   24
+#define VIEW_RESET      25
 
 #define LAYER_0         30
 #define LAYER_1         31
@@ -91,6 +105,8 @@ static int showHelp=0;
 
 static float WORLD_SIZE;
 static float FISHEYE_WORLD_SIZE;
+static float BACKUP_WORLD_SIZE;
+
 double fisheye_alpha = 0.0;
 
 //hauke
@@ -374,8 +390,8 @@ static void display_world(void){
   }
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
   */
-  buildMenuPopup(); //hauke: test
-  glutAttachMenu(GLUT_RIGHT_BUTTON);
+  //buildMenuPopup(); //hauke: test
+  //glutAttachMenu(GLUT_RIGHT_BUTTON);
 
 }
 
@@ -574,14 +590,15 @@ static void keypressed(unsigned char key,int x,int y){
 
   printf("Key at %dx%d: %u('%c')\n",x,y,key,key);
   if(key=='r' || key=='R'){
-      mm=mm_reset;
-      glutPostRedisplay();
+      selectFromMenu(VIEW_RESET);
+      //mm=mm_reset;
+      //glutPostRedisplay();
   } else if(key=='f' || key=='F'){
-      mm=mm_reset;
+      //mm=mm_reset;
       mm.ha=mm.va=0.;
       glutPostRedisplay();
   } else if(key=='s' || key=='S'){
-      mm=mm_reset;
+      //mm=mm_reset;
       mm.ha=90.;
       mm.va=0.;
       glutPostRedisplay();
@@ -592,7 +609,6 @@ static void keypressed(unsigned char key,int x,int y){
   else if(key=='c' || key=='C'){
     if(!ced_get_selected(x,y,&mm.mv.x,&mm.mv.y,&mm.mv.z))
          glutPostRedisplay();
-
   } 
   //hauke hoelbe: 08.02.2010
   else if(key=='p' || key=='P'){
@@ -609,18 +625,23 @@ static void keypressed(unsigned char key,int x,int y){
 
   }
   else if(key=='v' || key=='V'){
-    if(fisheye_alpha==0.0){
-        fisheye_alpha = 1e-3;
-        FISHEYE_WORLD_SIZE = WORLD_SIZE/(1.0+WORLD_SIZE*fisheye_alpha);
-        set_world_size(WORLD_SIZE);
-        printf("Fisheye view on\n");
-    }
-    else{
-        fisheye_alpha = 0.0;
-        set_world_size(FISHEYE_WORLD_SIZE);
-        printf("Fisheye view off\n");
-    }
-    glutPostRedisplay();
+        selectFromMenu(VIEW_FISHEYE);
+//
+//    if(fisheye_alpha==0.0){
+//                fisheye_alpha = 1e-3;
+//        FISHEYE_WORLD_SIZE = WORLD_SIZE/(1.0+WORLD_SIZE*fisheye_alpha);
+//        set_world_size(WORLD_SIZE);
+//        set_world_size(FISHEYE_WORLD_SIZE);
+//
+//        printf("Fisheye view on\n");
+//    }
+//    else{
+//        fisheye_alpha = 0.0;
+//        set_world_size(FISHEYE_WORLD_SIZE);
+//        set_world_size(WORLD_SIZE);
+//        printf("Fisheye view off\n");
+//    }
+//    glutPostRedisplay();
   } else if((key>='0') && (key<='9')){
         selectFromMenu(LAYER_0+key-'0');
     //toggle_layer(key-'0');
@@ -670,11 +691,20 @@ static void keypressed(unsigned char key,int x,int y){
     //show_all_layers();
     //glutPostRedisplay();
 
-
-  }
-  
   // SD: added layers
-  
+  } else if(key == '+'){
+        selectFromMenu(VIEW_ZOOM_IN);
+  } else if(key == '-'){
+        selectFromMenu(VIEW_ZOOM_OUT);
+  } else if(key == 'z'){
+        mm.mv.z+=150./mm.sf;
+        glutPostRedisplay();
+  } else if(key == 'Z'){
+        mm.mv.z-=150./mm.sf;
+        glutPostRedisplay();
+  }
+
+
   else if(key=='t'){ // t - momentum at ip layer 2
     toggle_layer(20);
     glutPostRedisplay();
@@ -835,13 +865,16 @@ void drawStringBig (char *s){
 void subDisplay(void){
     char label[200];
     char keys[] = {'0','1', '2','3','4','5','6','7','8','9',')', '!', '@', '#', '$', '%', '^', '&', '*', '('};
+    int i;
 
     glutSetWindow(subWindow);
     glClearColor(0.5, 0.5, 0.5, 100);
     glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    float line = 50/window_height;
-    float column = 150/window_width+0.05;
+    float line = 60/window_height;
+    float column = 200/window_width;
+    const int ITEMS_PER_COLUMN=window_height/90;
+    //const int MAX_COLUMN= window_width/100;
     //border
     glColor3f(0,0.9,.9);
     glBegin(GL_LINE_LOOP);
@@ -851,40 +884,34 @@ void subDisplay(void){
     glVertex2f(0.999, 0.01);
     glEnd();
 
-    //write help 
     glColor3f(1.0, 1.0, 1.0); //white
-    sprintf(label, "[f] Font view");
-    glRasterPos2f(0.05, 6*line);
-    drawString(label);
 
     //printf("window_height %f\nwindow width %f\n", window_height, window_width);
-    sprintf(label, "[s] Side view");
-    glRasterPos2f(0.05F, 5*line);
-    drawString(label);
+    char *shortcuts[]={
+            "[h] Toggle shortcut frame",
+            "[r] Reset view",
+            "[f] Font view",
+            "[s] Side view", 
+            "[v] Fish eye view",
+            "[b] Change background color",
+            "[+] Zoom in",
+            "[-] Zoom out",
+            "[c] Center"
+            };
 
-    sprintf(label, "[v] Fish eye view");
-    glRasterPos2f(0.05F, 4*line);
-    drawString(label);
+    for(i=0;i<sizeof(shortcuts)/sizeof(char *);i++){
+       //if((i/ITEMS_PER_COLUMN) > MAX_COLUMN) break;
+       sprintf(label,"%s", shortcuts[i]);
+       glRasterPos2f(((int)(i/ITEMS_PER_COLUMN))*column+0.02,(ITEMS_PER_COLUMN-(i%ITEMS_PER_COLUMN))*line);
+       //printf("i=%i  lineposition=%i\n",i, (ITEMS_PER_COLUMN-(i%ITEMS_PER_COLUMN)));
+       drawString(label);
+    }
 
-    sprintf(label, "[b] Change background color");
-    glRasterPos2f(0.05F, 3*line);
-    drawString(label);
-
-    sprintf(label, "[h] Toggle shortcut frame");
-    glRasterPos2f(0.05F, 2*line);
-    drawString(label);
-
-    sprintf(label, "[x] Placeholder");
-    glRasterPos2f(0.05F, 1*line);
-    drawString(label);
-
-
-
-    const int ITEMS_PER_COLUMN=6;
-    int i;
+    int actual_column=(int)((i-1)/ITEMS_PER_COLUMN)+1;
     for(i=0;i<20;i++){
-       sprintf(label,"[%c] Label %i: %s", keys[i], i, layerDescription[i]);
-       glRasterPos2f(((int)(i/ITEMS_PER_COLUMN)+1)*column,(ITEMS_PER_COLUMN-(i%ITEMS_PER_COLUMN))*line);
+       //if(((i/ITEMS_PER_COLUMN)+1) > MAX_COLUMN) break;
+       sprintf(label,"[%c] Layer %i: %s", keys[i], i, layerDescription[i]);
+       glRasterPos2f(((int)(i/ITEMS_PER_COLUMN)+actual_column)*column,(ITEMS_PER_COLUMN-(i%ITEMS_PER_COLUMN))*line);
        drawString(label);
     }
 
@@ -899,6 +926,12 @@ void subDisplay(void){
 }
 void subReshape (int w, int h)
 {
+    //int border=1;
+    //glutPositionWindow(w,h);
+    //glutReshapeWindow(window_width,window_height);
+    
+    // set the projection matrix for the current window
+
   glViewport (0, 0, w, h);
   glMatrixMode (GL_PROJECTION);
   glLoadIdentity ();
@@ -920,8 +953,9 @@ void writeString(char *str,int x,int y){
     }
     //glPopMatrix();
 }
-void toggleHelpWindow(){
+void toggleHelpWindow(){ //hauke
     mainWindow=glutGetWindow();
+    
     if(showHelp == 1){
         //printf("Hide help subwindow\n");
         glutDestroyWindow(subWindow);
@@ -934,6 +968,8 @@ void toggleHelpWindow(){
         subWindow=glutCreateSubWindow(mainWindow,5,5,window_width-10,window_height/5);
         glutDisplayFunc(subDisplay);
         glutReshapeFunc(subReshape);
+
+
         //glutMotionFunc(motion);
         //glutSetWindow(subWindow);
         //writeString("hello world0",255,255);
@@ -980,7 +1016,7 @@ void addLayerDescriptionToMenu(int i, char * str){
         printf("Error layer id out of range\n");
     }
     strncpy(layerDescription[i], str,199);
-    printf("layerDescription: %s\n", layerDescription[i]);
+    //printf("layerDescription: %s\n", layerDescription[i]);
 }
 void selectFromMenu(int id){ //hauke
     char keys[] = {'0','1', '2','3','4','5','6','7','8','9',')', '!', '@', '#', '$', '%', '^', '&', '*', '('};
@@ -990,6 +1026,47 @@ void selectFromMenu(int id){ //hauke
 
 
     switch(id){
+        case BGCOLOR_GAINSBORO:
+            glClearColor(0.862745,0.862745,0.862745,0);
+            break;
+
+        case BGCOLOR_LIGHTGREY:
+            glClearColor(0.827451,0.827451,0.827451,0);
+            break;
+
+        case BGCOLOR_DARKGRAY:
+            glClearColor(0.662745,0.662745,0.662745,0);
+            break;
+
+        case BGCOLOR_GRAY:
+            glClearColor(0.501961,0.501961,0.501961,0);
+            break;
+
+
+        case BGCOLOR_SILVER:
+            glClearColor(0.7529,0.7529,0.7529,0);
+            break;
+        case BGCOLOR_DIMGRAY:
+            glClearColor(0.4118,0.4118,0.4118,0);
+            break;
+        case BGCOLOR_LIGHTSTEELBLUE:
+            glClearColor(0.6902,0.7686 ,0.8706,0);
+            break;
+        case BGCOLOR_STEELBLUE:
+            glClearColor(0.2745,0.5098,0.70588,0);
+            break;
+        case BGCOLOR_SEAGREEN:
+            glClearColor(0.18039,0.54509,0.34117,0);
+            break;
+        case BGCOLOR_ORANGE:
+            glClearColor(1,0.647,0,0);
+            break;
+        case BGCOLOR_YELLOW:
+            glClearColor(1,1,0,0);
+            break;
+        case BGCOLOR_VIOLET:
+            glClearColor(0.9333,0.5098,0.9333,0);
+            break;
         case BGCOLOR_BLACK:
             glClearColor(0,0,0,0);
             break;
@@ -1000,19 +1077,31 @@ void selectFromMenu(int id){ //hauke
             glClearColor(1,1,1,0);
             break;
 
+
+        case VIEW_RESET:
+            mm=mm_reset;
+            break;
         case VIEW_FISHEYE:
             if(fisheye_alpha==0.0){
                 fisheye_alpha = 1e-3;
-                FISHEYE_WORLD_SIZE = WORLD_SIZE/(1.0+WORLD_SIZE*fisheye_alpha);
-                set_world_size(WORLD_SIZE);
+                 //FISHEYE_WORLD_SIZE = WORLD_SIZE/(1.0+WORLD_SIZE*fisheye_alpha); //<--old
+                FISHEYE_WORLD_SIZE = WORLD_SIZE/(WORLD_SIZE*fisheye_alpha); //<-- new
+                set_world_size(WORLD_SIZE); // <-- old
+                //set_world_size(FISHEYE_WORLD_SIZE); //<-- new
+                //mm.sf += 0.69; //<-- new
                 //printf("Fisheye view on\n");
             }
             else{
                 fisheye_alpha = 0.0;
-                set_world_size(FISHEYE_WORLD_SIZE);
+                //BACKUP_WORLD_SIZE=WORLD_SIZE; //<-- new
+
+                set_world_size(FISHEYE_WORLD_SIZE); //<-- old
+                //set_world_size(BACKUP_WORLD_SIZE); //<-- new
+                //mm.sf -= 0.69; //<-- new
                 //printf("Fisheye view off\n");
             }
             break;
+
         case VIEW_FRONT:
             mm=mm_reset;
             mm.ha=mm.va=0.;
@@ -1023,10 +1112,10 @@ void selectFromMenu(int id){ //hauke
             mm.va=0.;
             break;
         case VIEW_ZOOM_IN:
-            mm.sf += mm.sf*400.0/window_height;
+            mm.sf += mm.sf*200.0/window_height;
             break;
         case VIEW_ZOOM_OUT:
-            mm.sf -= mm.sf*400.0/window_height;
+            mm.sf -= mm.sf*200.0/window_height;
             break;
         case LAYER_ALL:
             glutSetMenu(layerMenu);
@@ -1069,23 +1158,24 @@ void selectFromMenu(int id){ //hauke
         case LAYER_19:
                 glutSetMenu(layerMenu);
                 toggle_layer(id-LAYER_0);
-                printf("toggle layer: %i\n", id-LAYER_0);
+                printf("Toggle layer: %i\n", id-LAYER_0);
                 if(isLayerVisible(id-LAYER_0)){
                     sprintf(string, "[X] Layer %i [%c]: %s", id-LAYER_0, keys[id-LAYER_0], layerDescription[id-LAYER_0]);
                 }else{
                     sprintf(string, "[ ] Layer %i [%c]: %s", id-LAYER_0, keys[id-LAYER_0], layerDescription[id-LAYER_0]);
                 }
                 glutChangeToMenuEntry(id-LAYER_0+2,string, id);                     
-                int i;
-                for(i=0;i<20;i++){
-                    printf("layer %i description: %s\n", i, layerDescription[i]);
-                }
+                //int i;
+                //for(i=0;i<20;i++){
+                //    printf("layer %i description: %s\n", i, layerDescription[i]);
+                //}
                 break;
 
     
         case HELP:
             toggleHelpWindow();
             break;
+
     }
     glutPostRedisplay();
     //printf("selected id %i\n",id); 
@@ -1098,11 +1188,34 @@ int buildMenuPopup(void){ //hauke
     int subMenu3;
 
     subMenu1 = glutCreateMenu(selectFromMenu);
-    glutAddMenuEntry("Black",BGCOLOR_BLACK);
-    glutAddMenuEntry("Blue",BGCOLOR_BLUE);
     glutAddMenuEntry("White",BGCOLOR_WHITE);
+    glutAddMenuEntry("Gainsboro", BGCOLOR_GAINSBORO);
+    glutAddMenuEntry("Lightgrey", BGCOLOR_LIGHTGREY);
+    glutAddMenuEntry("Silver", BGCOLOR_SILVER);
+    glutAddMenuEntry("Darkgray", BGCOLOR_DARKGRAY);
+    glutAddMenuEntry("Gray", BGCOLOR_GRAY);
+    glutAddMenuEntry("Dimgray", BGCOLOR_DIMGRAY);
+    glutAddMenuEntry("Black",BGCOLOR_BLACK);
+
+
+    glutAddMenuEntry("Lightsteelblue",BGCOLOR_LIGHTSTEELBLUE);
+    glutAddMenuEntry("Steelblue",BGCOLOR_STEELBLUE);
+    glutAddMenuEntry("Blue",BGCOLOR_BLUE);
+
+    glutAddMenuEntry("Seagreen",BGCOLOR_SEAGREEN);
+
+    glutAddMenuEntry("Orange",BGCOLOR_ORANGE);
+
+    glutAddMenuEntry("Yellow",BGCOLOR_YELLOW);
+
+    glutAddMenuEntry("Violet",BGCOLOR_VIOLET);
+
+
+
+
 
     subMenu2 = glutCreateMenu(selectFromMenu);
+    glutAddMenuEntry("Reset view [r]", VIEW_RESET);
     glutAddMenuEntry("Front view [f]", VIEW_FRONT);
     glutAddMenuEntry("Side view [s]", VIEW_SIDE);
     glutAddMenuEntry("Fisheye [v]",VIEW_FISHEYE);
@@ -1234,10 +1347,8 @@ int buildMenuPopup(void){ //hauke
   glutSpecialFunc(SpecialKey);
   glutMotionFunc(motion);
 
-  buildMenuPopup();
-  glutAttachMenu(GLUT_RIGHT_BUTTON);
-  
-  //hauke 08.02.2010 
+  buildMenuPopup(); //hauke
+  glutAttachMenu(GLUT_RIGHT_BUTTON); 
 //  glutMouseWheelFunc(mouseWheel);
 
 
