@@ -41,8 +41,11 @@
 #include <sys/select.h>
 
 //hauke
+#include <ctype.h> //toupper
 #include <sys/time.h>
 #include <time.h>
+#include "glced.h"
+#include "ced_srv.h"
 
 #define BGCOLOR_WHITE           1000
 #define BGCOLOR_SILVER          1001
@@ -61,12 +64,15 @@
 #define BGCOLOR_DARKGRAY        1013
 #define BGCOLOR_GRAY            1014
 
+#define BGCOLOR_USER            1100
+
 #define VIEW_FISHEYE    20
 #define VIEW_FRONT      21
 #define VIEW_SIDE       22
 #define VIEW_ZOOM_IN    23
 #define VIEW_ZOOM_OUT   24
 #define VIEW_RESET      25
+#define VIEW_CENTER     26
 
 #define LAYER_0         30
 #define LAYER_1         31
@@ -92,7 +98,15 @@
 
 #define HELP            100
 
-static char layerDescription[20][200]; // = {"test", "test", "test", "test", "test", "test", "test", "test", "test", "test", "test", "test", "test", "test", "test", "test", "test", "test", "test", "test"};
+#define count_layer
+
+//void selectFromMenu(int id);
+//void toggleHelpWindow(void);
+//int ced_picking(int x,int y,GLfloat *wx,GLfloat *wy,GLfloat *wz); //from ced_srv.c, need header files!
+
+
+ 
+static char layerDescription[26][200]; // = {"test", "test", "test", "test", "test", "test", "test", "test", "test", "test", "test", "test", "test", "test", "test", "test", "test", "test", "test", "test", "test","test", "test", "test", "test", "test" };
 
 static int mainWindow=-1;
 static int subWindow=-1;
@@ -105,7 +119,7 @@ static int showHelp=0;
 
 static float WORLD_SIZE;
 static float FISHEYE_WORLD_SIZE;
-static float BACKUP_WORLD_SIZE;
+//static float BACKUP_WORLD_SIZE;
 
 double fisheye_alpha = 0.0;
 
@@ -152,6 +166,8 @@ static color_t bgColors[] = {
   { 0.8, 0.8, 0.8, 0.0 },
   { 1.0, 1.0, 1.0, 0.0 }  //white
 };
+
+static float userDefinedBGColor[] = {-1.0, -1.0, -1.0, -1.0};
 
 static unsigned int iBGcolor = 0;
 
@@ -303,15 +319,15 @@ static GLfloat mouse_y=0.;
 
 
 // bitmaps for X,Y and Z
-static char x_bm[]={ 
+static unsigned char x_bm[]={ 
   0xc3,0x42,0x66,0x24,0x24,0x18,
   0x18,0x24,0x24,0x66,0x42,0xc3
 };
-static char y_bm[]={
+static unsigned char y_bm[]={
   0xc0,0x40,0x60,0x20,0x30,0x10,
   0x18,0x2c,0x24,0x66,0x42,0xc3
 };
-static char z_bm[]={ 
+static unsigned char z_bm[]={ 
   0xff,0x40,0x60,0x20,0x30,0x10,
   0x08,0x0c,0x04,0x06,0x02,0xff
 };
@@ -422,6 +438,7 @@ static void display(void){
 * Zoom by mousewheel                   *
 * deprecated
 ***************************************/
+/*
 static void mouseWheel(int wheel, int direction, int x, int y){
   //printf("mousewheel: direction %i, wheel %i, direction %i, x %i, y %i\n", direction, wheel, x, y);
   //mm.sf+=(20.*direction)/window_height;
@@ -432,6 +449,7 @@ static void mouseWheel(int wheel, int direction, int x, int y){
   //if(mm.sf<0.2){ mm.sf=0.2; }
   //else if(mm.sf>20.){ mm.sf=20.; }
 }
+*/
 
 
 static void reshape(int w,int h){
@@ -577,39 +595,44 @@ static void toggle_layer(unsigned l){
   //printBinaer(ced_visible_layers);
 }
 
+/*
 static void show_all_layers(void){
   ced_visible_layers=0xffffffff;
   //  printf("show all layers  ced_visible_layers = %u \n",ced_visible_layers);
 }
+*/
 
 static void keypressed(unsigned char key,int x,int y){
 
   //hauke
   //SM-H: TODO: socket list for communicating with client
-  struct __glutSocketList *sock;
+  //struct __glutSocketList *sock;
 
   printf("Key at %dx%d: %u('%c')\n",x,y,key,key);
-  if(key=='r' || key=='R'){
+  if(key=='r' || key=='R'){ 
       selectFromMenu(VIEW_RESET);
       //mm=mm_reset;
       //glutPostRedisplay();
-  } else if(key=='f' || key=='F'){
-      //mm=mm_reset;
-      mm.ha=mm.va=0.;
-      glutPostRedisplay();
+  } else if(key=='f' || key=='F'){ 
+      selectFromMenu(VIEW_FRONT);
+      ////mm=mm_reset;
+      //mm.ha=mm.va=0.;
+      //glutPostRedisplay();
   } else if(key=='s' || key=='S'){
-      //mm=mm_reset;
-      mm.ha=90.;
-      mm.va=0.;
-      glutPostRedisplay();
-  } else if(key==27) {
+      selectFromMenu(VIEW_SIDE);
+      ////mm=mm_reset;
+      //mm.ha=90.;
+      //mm.va=0.;
+      //glutPostRedisplay();
+  } else if(key==27) { //esc
       
       exit(0);
   }
   else if(key=='c' || key=='C'){
-    if(!ced_get_selected(x,y,&mm.mv.x,&mm.mv.y,&mm.mv.z))
-         glutPostRedisplay();
+    //selectFromMenu(VIEW_CENTER);
+    if(!ced_get_selected(x,y,&mm.mv.x,&mm.mv.y,&mm.mv.z)) glutPostRedisplay();
   } 
+/*
   //hauke hoelbe: 08.02.2010
   else if(key=='p' || key=='P'){
     if(!ced_picking(x,y,&mm.mv.x,&mm.mv.y,&mm.mv.z))
@@ -624,6 +647,7 @@ static void keypressed(unsigned char key,int x,int y){
       send( sock->fd , &id , sizeof(int) , 0 ) ;
 
   }
+*/
   else if(key=='v' || key=='V'){
         selectFromMenu(VIEW_FISHEYE);
 //
@@ -725,10 +749,21 @@ static void keypressed(unsigned char key,int x,int y){
 
   else if(key=='b'){ // toggle background color
     ++iBGcolor;
-    if (iBGcolor >= sizeof(bgColors)/sizeof(color_t)) iBGcolor = 0;
-    glClearColor(bgColors[iBGcolor][0],bgColors[iBGcolor][1],bgColors[iBGcolor][2],bgColors[iBGcolor][3]);
-    glutPostRedisplay();
-    printf("using color %u\n",iBGcolor);
+    if (iBGcolor >= sizeof(bgColors)/sizeof(color_t)){
+        glClearColor(userDefinedBGColor[0],userDefinedBGColor[1],userDefinedBGColor[2],userDefinedBGColor[3]);
+        iBGcolor=-1;
+        printf("using color: %s\n","user defined");
+        glutPostRedisplay();
+        return;
+    }else{
+    // else if (iBGcolor > sizeof(bgColors)/sizeof(color_t)){
+    //    iBGcolor = 0;
+    //}
+        glClearColor(bgColors[iBGcolor][0],bgColors[iBGcolor][1],bgColors[iBGcolor][2],bgColors[iBGcolor][3]);
+        glutPostRedisplay();
+        printf("using color %u\n",iBGcolor);
+    }
+
   } else if(key == 'h'){
         toggleHelpWindow();
   }
@@ -853,12 +888,36 @@ void drawString (char *s){
   unsigned int i;
   for (i = 0; i[s]; i++)
     glutBitmapCharacter (GLUT_BITMAP_HELVETICA_10, s[i]);
+    //glutBitmapCharacter (GLUT_BITMAP_9_BY_15, s[i]);
+
 }
 
 void drawStringBig (char *s){
   unsigned int i;
   for (i = 0; i[s]; i++)
     glutBitmapCharacter (GLUT_BITMAP_HELVETICA_18, s[i]);
+}
+
+void drawHelpString (char *string, float x,float y){ //format help strings strings: "[<key>] <description>"
+  unsigned int i;
+  glRasterPos2f(x,y);
+
+  int monospace = 0;
+  for (i = 0; string[i]; i++){
+    if(string[i] == '['){ 
+        monospace = 1;
+        glutBitmapCharacter (GLUT_BITMAP_HELVETICA_10, '[');
+        i++;
+    }
+    else if(string[i] == ']'){
+         monospace = 0;
+    }
+    if(monospace){
+        glutBitmapCharacter(GLUT_BITMAP_8_BY_13, string[i]);
+    }else{
+        glutBitmapCharacter (GLUT_BITMAP_HELVETICA_10, string[i]);
+    }
+  }
 }
 
 
@@ -896,23 +955,27 @@ void subDisplay(void){
             "[b] Change background color",
             "[+] Zoom in",
             "[-] Zoom out",
-            "[c] Center"
+            "[c] Center",
+            "[z] Move in z-axe direction",
+            "[Esc] Quit CED"
             };
 
     for(i=0;i<sizeof(shortcuts)/sizeof(char *);i++){
        //if((i/ITEMS_PER_COLUMN) > MAX_COLUMN) break;
-       sprintf(label,"%s", shortcuts[i]);
-       glRasterPos2f(((int)(i/ITEMS_PER_COLUMN))*column+0.02,(ITEMS_PER_COLUMN-(i%ITEMS_PER_COLUMN))*line);
+       //sprintf(label,"%s", shortcuts[i]);
+       //glRasterPos2f(((int)(i/ITEMS_PER_COLUMN))*column+0.02,(ITEMS_PER_COLUMN-(i%ITEMS_PER_COLUMN))*line);
        //printf("i=%i  lineposition=%i\n",i, (ITEMS_PER_COLUMN-(i%ITEMS_PER_COLUMN)));
-       drawString(label);
+       drawHelpString(shortcuts[i], ((int)(i/ITEMS_PER_COLUMN))*column+0.02, (ITEMS_PER_COLUMN-(i%ITEMS_PER_COLUMN))*line );
+        //drawString(label);
     }
 
     int actual_column=(int)((i-1)/ITEMS_PER_COLUMN)+1;
-    for(i=0;i<20;i++){
+    for(i=0;i<25;i++){
        //if(((i/ITEMS_PER_COLUMN)+1) > MAX_COLUMN) break;
        sprintf(label,"[%c] Layer %i: %s", keys[i], i, layerDescription[i]);
-       glRasterPos2f(((int)(i/ITEMS_PER_COLUMN)+actual_column)*column,(ITEMS_PER_COLUMN-(i%ITEMS_PER_COLUMN))*line);
-       drawString(label);
+       //glRasterPos2f(((int)(i/ITEMS_PER_COLUMN)+actual_column)*column,(ITEMS_PER_COLUMN-(i%ITEMS_PER_COLUMN))*line);
+       //drawString(label);
+        drawHelpString(label, ((int)(i/ITEMS_PER_COLUMN)+actual_column)*column,(ITEMS_PER_COLUMN-(i%ITEMS_PER_COLUMN))*line);
     }
 
 
@@ -953,7 +1016,7 @@ void writeString(char *str,int x,int y){
     }
     //glPopMatrix();
 }
-void toggleHelpWindow(){ //hauke
+void toggleHelpWindow(void){ //hauke
     mainWindow=glutGetWindow();
     
     if(showHelp == 1){
@@ -1077,6 +1140,9 @@ void selectFromMenu(int id){ //hauke
             glClearColor(1,1,1,0);
             break;
 
+        case BGCOLOR_USER:
+            glClearColor(userDefinedBGColor[0],userDefinedBGColor[1], userDefinedBGColor[2], userDefinedBGColor[3]);
+
 
         case VIEW_RESET:
             mm=mm_reset;
@@ -1117,12 +1183,17 @@ void selectFromMenu(int id){ //hauke
         case VIEW_ZOOM_OUT:
             mm.sf -= mm.sf*200.0/window_height;
             break;
+        case VIEW_CENTER:
+            //ced_get_selected(x,y,&mm.mv.x,&mm.mv.y,&mm.mv.z);
+            break;
         case LAYER_ALL:
             glutSetMenu(layerMenu);
             anz=0;
             for(i=0;i<20;i++){ //try to turn all layers on
                 if(!isLayerVisible(i)){
-                   sprintf(string, "[X] Layer %i [%c]: %s", i, keys[i], layerDescription[i]);
+                   //sprintf(string, "[X] Layer %i [%c]: %s", i, keys[i], layerDescription[i]);
+                   sprintf(string,"[X] Layer %s%i [%c]: %s", (i < 10)?"0":"" ,i, keys[i], layerDescription[i]);
+
                    glutChangeToMenuEntry(i+2,string, LAYER_0+i);                     
                    toggle_layer(i);
                    anz++;
@@ -1130,7 +1201,7 @@ void selectFromMenu(int id){ //hauke
             }
             if(anz == 0){ //turn all layers off
                 for(i=0;i<20;i++){
-                   sprintf(string,"[ ] Layer %i [%c]: %s", i, keys[i], layerDescription[i]);
+                   sprintf(string,"[   ] Layer %s%i [%c]: %s",(i < 10)?"0":"" ,i, keys[i], layerDescription[i]);
                    glutChangeToMenuEntry(i+2,string, LAYER_0+i);                     
                    toggle_layer(i);
                 }
@@ -1159,11 +1230,15 @@ void selectFromMenu(int id){ //hauke
                 glutSetMenu(layerMenu);
                 toggle_layer(id-LAYER_0);
                 printf("Toggle layer: %i\n", id-LAYER_0);
+                sprintf(string,"[%s] Layer %s%i [%c]: %s",isLayerVisible(id-LAYER_0)?"X":"   ", (id-LAYER_0 < 10)?"0":"" ,id-LAYER_0, keys[id-LAYER_0], layerDescription[id-LAYER_0]);
+/*
                 if(isLayerVisible(id-LAYER_0)){
+
                     sprintf(string, "[X] Layer %i [%c]: %s", id-LAYER_0, keys[id-LAYER_0], layerDescription[id-LAYER_0]);
                 }else{
-                    sprintf(string, "[ ] Layer %i [%c]: %s", id-LAYER_0, keys[id-LAYER_0], layerDescription[id-LAYER_0]);
+                    sprintf(string, "[  ] Layer %i [%c]: %s", id-LAYER_0, keys[id-LAYER_0], layerDescription[id-LAYER_0]);
                 }
+*/
                 glutChangeToMenuEntry(id-LAYER_0+2,string, id);                     
                 //int i;
                 //for(i=0;i<20;i++){
@@ -1210,6 +1285,10 @@ int buildMenuPopup(void){ //hauke
 
     glutAddMenuEntry("Violet",BGCOLOR_VIOLET);
 
+    if(userDefinedBGColor[0] >= 0){ //is set
+        glutAddMenuEntry("User defined",BGCOLOR_USER);
+    }
+
 
 
 
@@ -1219,8 +1298,10 @@ int buildMenuPopup(void){ //hauke
     glutAddMenuEntry("Front view [f]", VIEW_FRONT);
     glutAddMenuEntry("Side view [s]", VIEW_SIDE);
     glutAddMenuEntry("Fisheye [v]",VIEW_FISHEYE);
-    glutAddMenuEntry("Zoom in", VIEW_ZOOM_IN);
-    glutAddMenuEntry("Zoom out", VIEW_ZOOM_OUT);
+    glutAddMenuEntry("Zoom in [+]", VIEW_ZOOM_IN);
+    glutAddMenuEntry("Zoom out [-]", VIEW_ZOOM_OUT);
+    //glutAddMenuEntry("Center [c]", VIEW_CENTER);
+
 
     subMenu3 = glutCreateMenu(selectFromMenu);
     layerMenu=subMenu3;
@@ -1228,16 +1309,16 @@ int buildMenuPopup(void){ //hauke
   
     glutAddMenuEntry("Show all Layers [`]", LAYER_ALL);
 
-    char keys[] = {'0','1', '2','3','4','5','6','7','8','9',')', '!', '@', '#', '$', '%', '^', '&', '*', '('};
+    char keys[] = {'0','1', '2','3','4','5','6','7','8','9',')', '!', '@', '#', '$', '%', '^', '&', '*', '(', 't', 'y', 'u', 'i', 'o'};
     int i;
     char string[100];
 
     for(i=0;i<20;i++){
-        if(isLayerVisible(i)){
-            sprintf(string,"[X] Layer %i [%c]: %s", i, keys[i], layerDescription[i]);
-        }else{
-            sprintf(string,"[ ] Layer %i [%c]: %s", i, keys[i], layerDescription[i]);
-        }
+        //if(isLayerVisible(i)){
+        sprintf(string,"[%s] Layer %s%i [%c]: %s",isLayerVisible(i)?"X":"   ", (i < 10)?"0":"" ,i, keys[i], layerDescription[i]);
+        //}else{
+        //    sprintf(string,"[   ] Layer %i [%c]: %s", i, keys[i], layerDescription[i]);
+        //}
         glutAddMenuEntry(string,LAYER_0+i);
     }
 
@@ -1245,7 +1326,7 @@ int buildMenuPopup(void){ //hauke
     glutAddSubMenu("View", subMenu2);
     glutAddSubMenu("Layers", subMenu3);
     glutAddSubMenu("Background Color", subMenu1);
-    glutAddMenuEntry("Help [h]",HELP);
+    glutAddMenuEntry("Toggle help [h]",HELP);
 
     return menu;
 }
@@ -1299,6 +1380,11 @@ int buildMenuPopup(void){ //hauke
                 break;
             }
             if(k==5){
+                userDefinedBGColor[0] = (tmp[0]*16 + tmp[1])/255.0;
+                userDefinedBGColor[1] = (tmp[2]*16 + tmp[3])/255.0;
+                userDefinedBGColor[2] = (tmp[4]*16 + tmp[5])/255.0;
+                userDefinedBGColor[3] = 0.0;
+            
                 printf("set color to: %f/%f/%f\n",(tmp[0]*16 + tmp[1])/255.0, (tmp[2]*16 + tmp[3])/255.0, (tmp[4]*16 + tmp[5])/255.0); 
                 set_bg_color((tmp[0]*16 + tmp[1])/255.0,(tmp[2]*16 + tmp[3])/255.0,(tmp[4]*16 + tmp[5])/255.0,0.0);
             }

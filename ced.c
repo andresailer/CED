@@ -157,7 +157,7 @@ static void ced_event_copy(ced_event *trg){
 void ced_do_draw_event(void){
   unsigned i,j;
   ced_element *pe;
-  char *pdata;
+  unsigned char *pdata;
   for(i=0;i<ceve.e_count;i++){
     pe=ceve.e+i;
     if(!pe->draw)

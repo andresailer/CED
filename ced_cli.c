@@ -6,6 +6,7 @@
 
 #include <ced_cli.h>
 #include <ced.h>
+#include <stdio.h>
 
 
 /*

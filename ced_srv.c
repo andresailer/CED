@@ -26,11 +26,8 @@
 #include <netdb.h>
 #include <unistd.h>
 
-//#include <globals.h> //hauke
-//static char foobar[200];
-
-#include <globals.h>
-int foobar;
+//hauke
+#include "glced.h"
 
 #include <ced.h>
 #define PORT        0x1234
@@ -604,10 +601,11 @@ static void renderBitmapString(
 
 
 
+/*
 //hauke
 //static unsigned TEXT_ID=0;
 static void ced_draw_text(CED_TEXT *text){
-    int startY=-700;
+    //int startY=-700;
     char message[200];
 	int font=(int)GLUT_BITMAP_TIMES_ROMAN_10; //default font
 
@@ -634,6 +632,7 @@ static void ced_draw_text(CED_TEXT *text){
     glEnd();
 
 }
+*/
 
 
 static unsigned TEXT_ID=0;
