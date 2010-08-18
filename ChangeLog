@@ -1,0 +1,303 @@
+2010-08-18 15:49  hhoelbe
+
+	* [r1676] ced.c, ced_cli.c, glced.c: empty
+
+2010-08-11 16:56  hhoelbe
+
+	* [r1675] ced_srv.h, glced.h: - header files...
+
+2010-08-11 16:54  hhoelbe
+
+	* [r1674] ced.c, ced_cli.c, ced_srv.c, glced.c: - removed the
+	  compile-warnings
+	  - formate help frame & menu
+	  - make user defined color (-bgcolor) accessible from the menu
+
+2010-07-28 17:11  hhoelbe
+
+	* [r1670] ced_cli.c, glced.c: - Fixed the segmentation fault
+	  problem
+	  
+	  - CED now automatic arrange text in the help window (how many
+	  lines
+	  per column and so on)
+	  
+	  - Little things: Zoom by +/-, more background colors,
+	  add the missing shortcuts to the help, front and side
+	  view do not reset zoom.
+
+2010-07-21 17:16  hhoelbe
+
+	* [r1665] ced_cli.c, ced_cli.h, ced_srv.c, glced.c: - It is now
+	  possible to set layer descriptions.
+	  Example added to MarlinCED:
+	  ced_describe_layer("Test description for layer 16",16);
+	  - Help frame shows layers, with descriptions
+	  - Menu show layer descriptions.
+	  
+	  - Problems: After swiching help window several times on/off or
+	  resize the CED windows several times, CED crashed with
+	  Segmentation Fault.
+
+2010-07-14 16:44  hhoelbe
+
+	* [r1653] ced_cli.c, ced_cli.h, ced_srv.c, glced.c: pop up menu,
+	  help subwindow
+
+2010-07-07 16:21  hhoelbe
+
+	* [r1651] glced.c: popup menu, help window
+
+2010-06-23 10:03  engels
+
+	* [r1598] .: created branch hauke_dev2
+
+2010-06-18 15:36  hhoelbe
+
+	* [r1590] merged branch with trunk (hauke)
+
+2010-06-17 14:41  aplin
+
+	* [r1585] added ctest
+
+2010-06-10 12:23  engels
+
+	* [r1569] added simple test program to draw 1 million hits
+
+2010-06-10 12:12  engels
+
+	* [r1568] updated
+
+2010-05-26 16:05  engels
+
+	* [r1560] new features: (H. Hoelbe)
+	  enabled picking (double-click hit)
+	  zoom (mouse-wheel)
+	  backgroud color option (e.g. glced -bgcolor black)
+	  new ced_write_text function
+	  
+	  merged calice branch:
+	  filled boxes
+	  fixed perspective
+	  b-key toggles background color (light-blue, black, gray shades,
+	  white)
+
+2010-05-26 15:53  engels
+
+	* [r1559] 100.000 hits bug fix
+
+2009-11-25 15:46  /C=DE/O=GermanGrid/OU=DESY/CN=Steven Aplin
+
+	* [r1448] ---------------- release v00-07 ----------------
+
+2009-09-09 13:54  engels
+
+	* [r1368] updated
+
+2009-09-09 13:53  engels
+
+	* [r1367] merged two if/endif code blocks into one (for glced)
+
+2009-09-08 13:00  stewartm
+
+	* [r1364] SM-H: Fisheye code, plus client-server stuff and picking
+	  (corresponds to MarlinCED client code)
+
+2008-10-23 10:18  engels
+
+	* [r1251] ---------- v00-06 ----------
+
+2008-10-23 09:50  engels
+
+	* [r1250] updated
+
+2008-10-14 10:15  engels
+
+	* [r1241] added 32 bit compatibility option
+
+2008-10-14 09:59  engels
+
+	* [r1240] removed some warnings
+
+2008-09-15 10:05  darasz
+
+	* [r1233] added drawing of transparent ellipsoids:
+	  ced_ellipsoid_r()
+	  and wireframe ellipsoids ced_cluellipse_r() and added more layers
+
+2008-09-09 14:32  darasz
+
+	* [r1229] added new functionality to draw: rotated and translated
+	  geo_cylinders, cones and boxes;
+	  added code to display a color map legend; functions added:
+	  void ced_geocylinder_r(float d, double z, double * center, double
+	  * rotate, unsigned sides,
+	  void ced_geobox_r(double * sizes, double * center, double *
+	  rotate, unsigned int color, unsigned int layer);
+	  void ced_legend(float ene_min, float ene_max, unsigned int
+	  color_steps, unsigned int ** rgb_matrix, unsigned int ticks, char
+	  scale);
+	  void ced_cone_r(float base, float height, double *center, double
+	  *rotate, unsigned int layer, float *RGBAcolor);
+
+2008-08-18 14:00  engels
+
+	* [r1224] bug fix for building ced server on mac;
+	  added CED_LIBRARY_DIRS;
+	  made cmake 2.6 compatible
+
+2008-07-24 08:47  gaede
+
+	* [r1204] ------------------------ version v00-05 -----------------
+
+2008-07-24 08:43  gaede
+
+	* [r1203] restructered build process: default is to build true
+	  client library libCED.so
+	  - optionally also build CED server glced (needs glut/OpenGL)
+	  cmake switch -D CED_SERVER=On
+
+2008-07-23 15:01  gaede
+
+	* [r1201] ---------- v00-04-01 ----------------------
+
+2008-07-23 14:59  gaede
+
+	* [r1200] made compatible with cpp compiler (extrern C)
+
+2008-07-22 14:27  gaede
+
+	* [r1192] ------------- v00-04 --------------------------
+
+2008-06-20 14:11  aplin
+
+	* [r1083] corrected implementation of crosses for displaying hits.
+	  added layer functionality to CED_GeoBoxR. added an unique id
+	  variable (int) to CED_Hit, which is printed to screen whenever
+	  the 'C' key is pressed to center on a hit.
+
+2008-06-16 13:41  aplin
+
+	* [r1076] improved drawing scale, and made ced_visible_layers
+	  external as it is defined in ced_srv.c
+
+2008-06-16 13:38  aplin
+
+	* [r1075] added rotated box method
+
+2008-02-22 13:22  engels
+
+	* [r896] bug fixed (N. Wattimena)
+
+2008-01-22 08:52  engels
+
+	* [r862] set both variables INCLUDE_DIR and INCLUDE_DIRS for
+	  compatibility
+
+2007-11-05 18:03  engels
+
+	* [r707] INCLUDE_DIR -> INCLUDE_DIRS
+
+2007-09-12 07:59  engels
+
+	* [r658] replaced CMAKE_XXX_DIR with PROJECT_XXX_DIR
+
+2007-07-18 06:51  engels
+
+	* [r633] updated version
+
+2007-07-13 15:50  gaede
+
+	* [r609] release notes for v00-03
+
+2007-07-04 14:09  engels
+
+	* [r592] added rpath for apple
+
+2007-07-02 14:14  engels
+
+	* [r588] added export build settings + library dependencies (only
+	  in binary dir for testing)
+
+2007-06-29 10:01  gaede
+
+	* [r581] added a few more shapes
+
+2007-06-29 10:01  gaede
+
+	* [r580] path by A.Bulgheroni for drawing boxes
+
+2007-06-28 09:19  gaede
+
+	* [r578] added test_ced to install target
+
+2007-06-28 08:42  gaede
+
+	* [r577] added cmake 'howto'
+
+2007-06-28 08:36  gaede
+
+	* [r576] replace sqrt with M_SQRT2
+
+2007-06-28 08:32  gaede
+
+	* [r575] ported to Apple
+
+2007-06-27 17:10  gaede
+
+	* [r574] added simple example program test_ced (only built with
+	  cmake)
+
+2007-06-27 17:10  gaede
+
+	* [r573] initial version
+
+2007-06-27 17:09  gaede
+
+	* [r572] added ced_geobox for displaying a box with offset in x,y
+	  (author A.Bulgheroni, INFN)
+
+2007-06-27 17:09  gaede
+
+	* [r571] - added world_size command line parameter to glced
+	  - added help message for "glced -help [ -h, -?] "
+	  - replaced fixed size window geometry with geometry comand-line
+	  option
+
+2007-06-21 15:24  engels
+
+	* [r563] some minor changes
+	  more readable code
+	  retabbed
+
+2007-05-29 16:20  engels
+
+	* [r525] updated version
+
+2007-05-11 08:06  engels
+
+	* [r496] removed cmake backwards compatibility 2.2
+
+2007-04-25 14:24  engels
+
+	* [r451] added CMake files
+
+2005-11-11 15:23  samson
+
+	* [r205] removed binary from repository
+
+2005-11-11 15:19  samson
+
+	* [r203] Adding Makefile for Mesa users
+
+2005-08-04 14:53  gaede
+
+	* [r127] This commit was generated by cvs2svn to compensate for
+	  changes in r126,
+	  which included commits to RCS files with non-trunk default
+	  branches.
+
+2005-08-04 14:53  
+
+	* [r125] Standard project directories initialized by cvs2svn.
+
