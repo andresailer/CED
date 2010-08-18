@@ -27,7 +27,7 @@
 #include <unistd.h>
 
 //hauke
-#include "glced.h"
+//#include "glced.h"
 
 #include <ced.h>
 #define PORT        0x1234

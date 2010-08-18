@@ -44,8 +44,8 @@
 #include <ctype.h> //toupper
 #include <sys/time.h>
 #include <time.h>
-#include "glced.h"
-#include "ced_srv.h"
+//#include "glced.h"
+//#include "ced_srv.h"
 
 #define BGCOLOR_WHITE           1000
 #define BGCOLOR_SILVER          1001
@@ -102,7 +102,7 @@
 
 //void selectFromMenu(int id);
 //void toggleHelpWindow(void);
-//int ced_picking(int x,int y,GLfloat *wx,GLfloat *wy,GLfloat *wz); //from ced_srv.c, need header files!
+int ced_picking(int x,int y,GLfloat *wx,GLfloat *wy,GLfloat *wz); //from ced_srv.c, need header files!
 
 
  
