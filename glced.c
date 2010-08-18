@@ -107,6 +107,8 @@
 
  
 static char layerDescription[26][200]; // = {"test", "test", "test", "test", "test", "test", "test", "test", "test", "test", "test", "test", "test", "test", "test", "test", "test", "test", "test", "test", "test","test", "test", "test", "test", "test" };
+const char layer_keys[] = {'0','1', '2','3','4','5','6','7','8','9',')', '!', '@', '#', '$', '%', '^', '&', '*', '(', 't', 'y', 'u', 'i', 'o'};
+
 
 static int mainWindow=-1;
 static int subWindow=-1;
@@ -923,7 +925,6 @@ void drawHelpString (char *string, float x,float y){ //format help strings strin
 
 void subDisplay(void){
     char label[200];
-    char keys[] = {'0','1', '2','3','4','5','6','7','8','9',')', '!', '@', '#', '$', '%', '^', '&', '*', '('};
     int i;
 
     glutSetWindow(subWindow);
@@ -972,7 +973,7 @@ void subDisplay(void){
     int actual_column=(int)((i-1)/ITEMS_PER_COLUMN)+1;
     for(i=0;i<25;i++){
        //if(((i/ITEMS_PER_COLUMN)+1) > MAX_COLUMN) break;
-       sprintf(label,"[%c] Layer %i: %s", keys[i], i, layerDescription[i]);
+       sprintf(label,"[%c] Layer %i: %s", layer_keys[i], i, layerDescription[i]);
        //glRasterPos2f(((int)(i/ITEMS_PER_COLUMN)+actual_column)*column,(ITEMS_PER_COLUMN-(i%ITEMS_PER_COLUMN))*line);
        //drawString(label);
         drawHelpString(label, ((int)(i/ITEMS_PER_COLUMN)+actual_column)*column,(ITEMS_PER_COLUMN-(i%ITEMS_PER_COLUMN))*line);
@@ -1074,15 +1075,33 @@ void toggleHelpWindow(void){ //hauke
 //    printf("layer %i text: %s\n", obj->id, obj->str);
 //}
 
-void addLayerDescriptionToMenu(int i, char * str){
-    if(i < 0 || i >= 20){
-        printf("Error layer id out of range\n");
+void addLayerDescriptionToMenu(int id, char * str){
+    char string[200];
+    if(id == -1){ //reset all
+        
+        int i=0;
+        for(i=0;i<25;i++){
+            strcpy(layerDescription[i], "");
+            sprintf(string,"[%s] Layer %s%i [%c]: %s",isLayerVisible(id)?"X":"   ", (i < 10)?"0":"" ,i, layer_keys[i], layerDescription[i]);
+            glutSetMenu(layerMenu);
+            glutChangeToMenuEntry(i+2,string, i+LAYER_0);                     
+        }
+        return;
     }
-    strncpy(layerDescription[i], str,199);
-    //printf("layerDescription: %s\n", layerDescription[i]);
+
+    if(id < 0 || id >= 25){
+        printf("Warning: Layer id out of range\n");
+        return;
+    }
+    strncpy(layerDescription[id], str,199);
+//--------
+    sprintf(string,"[%s] Layer %s%i [%c]: %s",isLayerVisible(id)?"X":"   ", (id < 10)?"0":"" ,id, layer_keys[id], layerDescription[id]);
+    glutSetMenu(layerMenu);
+    glutChangeToMenuEntry(id+2,string, id+LAYER_0);                     
+ 
+    //printf("layerDescription: layer %i text: %s\n", id, layerDescription[id]);
 }
 void selectFromMenu(int id){ //hauke
-    char keys[] = {'0','1', '2','3','4','5','6','7','8','9',')', '!', '@', '#', '$', '%', '^', '&', '*', '('};
     char string[250];
     int i;
     int anz;
@@ -1191,8 +1210,8 @@ void selectFromMenu(int id){ //hauke
             anz=0;
             for(i=0;i<20;i++){ //try to turn all layers on
                 if(!isLayerVisible(i)){
-                   //sprintf(string, "[X] Layer %i [%c]: %s", i, keys[i], layerDescription[i]);
-                   sprintf(string,"[X] Layer %s%i [%c]: %s", (i < 10)?"0":"" ,i, keys[i], layerDescription[i]);
+                   //sprintf(string, "[X] Layer %i [%c]: %s", i, layer_keys[i], layerDescription[i]);
+                   sprintf(string,"[X] Layer %s%i [%c]: %s", (i < 10)?"0":"" ,i, layer_keys[i], layerDescription[i]);
 
                    glutChangeToMenuEntry(i+2,string, LAYER_0+i);                     
                    toggle_layer(i);
@@ -1201,7 +1220,7 @@ void selectFromMenu(int id){ //hauke
             }
             if(anz == 0){ //turn all layers off
                 for(i=0;i<20;i++){
-                   sprintf(string,"[   ] Layer %s%i [%c]: %s",(i < 10)?"0":"" ,i, keys[i], layerDescription[i]);
+                   sprintf(string,"[   ] Layer %s%i [%c]: %s",(i < 10)?"0":"" ,i, layer_keys[i], layerDescription[i]);
                    glutChangeToMenuEntry(i+2,string, LAYER_0+i);                     
                    toggle_layer(i);
                 }
@@ -1230,7 +1249,7 @@ void selectFromMenu(int id){ //hauke
                 glutSetMenu(layerMenu);
                 toggle_layer(id-LAYER_0);
                 printf("Toggle layer: %i\n", id-LAYER_0);
-                sprintf(string,"[%s] Layer %s%i [%c]: %s",isLayerVisible(id-LAYER_0)?"X":"   ", (id-LAYER_0 < 10)?"0":"" ,id-LAYER_0, keys[id-LAYER_0], layerDescription[id-LAYER_0]);
+                sprintf(string,"[%s] Layer %s%i [%c]: %s",isLayerVisible(id-LAYER_0)?"X":"   ", (id-LAYER_0 < 10)?"0":"" ,id-LAYER_0, layer_keys[id-LAYER_0], layerDescription[id-LAYER_0]);
 /*
                 if(isLayerVisible(id-LAYER_0)){
 
@@ -1309,16 +1328,11 @@ int buildMenuPopup(void){ //hauke
   
     glutAddMenuEntry("Show all Layers [`]", LAYER_ALL);
 
-    char keys[] = {'0','1', '2','3','4','5','6','7','8','9',')', '!', '@', '#', '$', '%', '^', '&', '*', '(', 't', 'y', 'u', 'i', 'o'};
     int i;
     char string[100];
 
     for(i=0;i<20;i++){
-        //if(isLayerVisible(i)){
-        sprintf(string,"[%s] Layer %s%i [%c]: %s",isLayerVisible(i)?"X":"   ", (i < 10)?"0":"" ,i, keys[i], layerDescription[i]);
-        //}else{
-        //    sprintf(string,"[   ] Layer %i [%c]: %s", i, keys[i], layerDescription[i]);
-        //}
+        sprintf(string,"[%s] Layer %s%i [%c]: %s",isLayerVisible(i)?"X":"   ", (i < 10)?"0":"" ,i, layer_keys[i], layerDescription[i]);
         glutAddMenuEntry(string,LAYER_0+i);
     }
 
