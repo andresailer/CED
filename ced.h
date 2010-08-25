@@ -75,6 +75,9 @@ int ced_process_input(void *data);
 void addLayerDescriptionToMenu(int,char *);//glced.c
 void selectFromMenu(int id);//glced.c
 void toggleHelpWindow(void);//glced.c
+void updateLayerEntryInPopupMenu(int); //glced.c
+int buildMenuPopup(void);//glced.c
+
 //-------------
 
 #ifdef __cplusplus

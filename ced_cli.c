@@ -193,7 +193,7 @@ void ced_legend(float ene_min, float ene_max, unsigned int color_steps, unsigned
 //hauke 
 static unsigned TEXT_ID=0;
 
-void ced_describe_layer(char *message, int id) {
+void ced_describe_layer(const char *message, int id) {
     //printf("ced_describe layer id=%i text: %s\n", id, message);
 
     if(id >= 25){
@@ -247,8 +247,10 @@ void ced_cone_r_ID(float base, float height, double *center, double *rotate, uns
   	const unsigned int channel = 4;
   	int i, j;
 
-    //
-    //ced_line_ID(0,0,0, center[0], center[1], center[2], type, width, color, 0);
+    // ced_line_ID(0,0,0, center[0], center[1], center[2], type, width, RGBAcolor, lcioid);
+
+    //ced_line_ID(center[0], center[1], center[2], rotate[0], rotate[1], rotate[2], layer, 1, RGBAcolor, lcioid);
+    //printf("CONE: from %f %f %f to %f %f %f\n", center[0], center[1], center[2], rotate[0], rotate[1], rotate[2]);
 
   	for (i = 0; i < dim; i ++ ) {
 		cone->center[i] = center[i];
