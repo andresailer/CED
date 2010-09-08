@@ -96,13 +96,9 @@
 
 #define HELP            100
 
-#define MAX_LAYER       25
-#define MAX_LAYER_POPUP 20
-
-
 int ced_picking(int x,int y,GLfloat *wx,GLfloat *wy,GLfloat *wz); //from ced_srv.c, need header files!
 
-static char layerDescription[MAX_LAYER][200]; 
+static char layerDescription[MAX_LAYER][MAX_LAYER_CHAR]; 
 const char layer_keys[] = {'0','1', '2','3','4','5','6','7','8','9',')', '!', '@', '#', '$', '%', '^', '&', '*', '(', 't', 'y', 'u', 'i', 'o'};
 
 static int mainWindow=-1;
@@ -898,18 +894,18 @@ void drawHelpString (char *string, float x,float y){ //format help strings strin
 
 
 void subDisplay(void){
-    char label[200];
+    char label[MAX_LAYER_CHAR];
     int i;
 
     glutSetWindow(subWindow);
     glClearColor(0.5, 0.5, 0.5, 100);
     glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    float line = 60/window_height;
+    float line = 45/window_height; //height of one line
     //float column = 200/window_width;
-    float column = 160/window_width;
+    float column = 200/window_width; //width of one line
 
-    const int ITEMS_PER_COLUMN=window_height/90;
+    const int ITEMS_PER_COLUMN=window_height/60; //how many lines per column?
     //const int MAX_COLUMN= window_width/100;
     //border
     glColor3f(0,0.9,.9);
@@ -924,7 +920,6 @@ void subDisplay(void){
 
     //printf("window_height %f\nwindow width %f\n", window_height, window_width);
     char *shortcuts[]={
-            "Control keys:",
             "[h] Toggle shortcut frame",
             "[r] Reset view",
             "[f] Font view",
@@ -940,6 +935,11 @@ void subDisplay(void){
             "[Esc] Quit CED"
             };
 
+    glColor3f(1.0, 1.0, 1.0);
+    sprintf (label, "Control keys");
+    glRasterPos2f(((int)(0/ITEMS_PER_COLUMN))*column+0.02, 0.80F);
+    drawStringBig(label);
+
     for(i=0;i<sizeof(shortcuts)/sizeof(char *);i++){
        //if((i/ITEMS_PER_COLUMN) > MAX_COLUMN) break;
        //sprintf(label,"%s", shortcuts[i]);
@@ -951,25 +951,68 @@ void subDisplay(void){
 
     int actual_column=(int)((i-1)/ITEMS_PER_COLUMN)+1;
 
+    int aline=0;
+    int j=0;
+    char tmp[MAX_LAYER_CHAR];
+    int jj=0;
+
+    glColor3f(1.0, 1.0, 1.0);
+    sprintf (label, "Labels");
+    glRasterPos2f(((int)(aline/ITEMS_PER_COLUMN)+actual_column)*column, 0.80F);
+    drawStringBig(label);
+
     for(i=0;i<MAX_LAYER;i++){
-        if(i==0){
-            drawHelpString("Layers:", ((int)(i/ITEMS_PER_COLUMN)+actual_column)*column,(ITEMS_PER_COLUMN-(i%ITEMS_PER_COLUMN))*line);
+/*        if(i==0){
+            drawHelpString("Layers:", ((int)(aline/ITEMS_PER_COLUMN)+actual_column)*column,(ITEMS_PER_COLUMN-(aline%ITEMS_PER_COLUMN))*line);
+            aline++;
             continue;
         }     
+*/
        //if(((i/ITEMS_PER_COLUMN)+1) > MAX_COLUMN) break;
-       sprintf(label,"[%c] %s%i: %s", layer_keys[i], (i<10)?"0":"", i, layerDescription[i]);
-       //glRasterPos2f(((int)(i/ITEMS_PER_COLUMN)+actual_column)*column,(ITEMS_PER_COLUMN-(i%ITEMS_PER_COLUMN))*line);
-       //drawString(label);
-        drawHelpString(label, ((int)(i/ITEMS_PER_COLUMN)+actual_column)*column,(ITEMS_PER_COLUMN-(i%ITEMS_PER_COLUMN))*line);
+        
+        for(j=0;j<MAX_LAYER_CHAR-1;j++){
+            if(layerDescription[i][j] != ','){
+                tmp[j]=layerDescription[i][j];
+            }else{
+                tmp[j]=0;
+                j+=2;
+                break;
+            }
+        }
+        
+       //sprintf(label,"[%c] %s%i: %s", layer_keys[i], (i<10)?"0":"", i, layerDescription[i]);
+        sprintf(label,"[%c] %s%i: %s", layer_keys[i], (i<10)?"0":"", i, tmp);
+        drawHelpString(label, ((int)(aline/ITEMS_PER_COLUMN)+actual_column)*column,(ITEMS_PER_COLUMN-(aline%ITEMS_PER_COLUMN))*line);
+        aline++;
+
+        jj=j;
+
+        for(;j<MAX_LAYER_CHAR-1;j++){
+            if(layerDescription[i][j] == ',' || layerDescription[i][j] == 0){
+                tmp[j-jj]=0;
+                j++; //scrip ", "
+                jj=j+1;
+                drawHelpString(tmp, ((int)(aline/ITEMS_PER_COLUMN)+actual_column+.18)*column,(ITEMS_PER_COLUMN-(aline%ITEMS_PER_COLUMN))*line);
+                aline++;
+                if(layerDescription[i][j] == 0){ break; }
+            }else{
+                tmp[j-jj]=layerDescription[i][j];
+            }
+        }
+
+
+
     }
 
 
+/*
     //write topic
     glColor3f(1.0, 1.0, 1.0);
     sprintf (label, "Shortcuts");
     glRasterPos2f(0.40F, 0.80F);
     drawStringBig(label);
 
+*/
     glutSwapBuffers ();
 }
 void subReshape (int w, int h)
@@ -1013,7 +1056,7 @@ void toggleHelpWindow(void){ //hauke
     }else if(showHelp == 0){
         //helpWindow = glutCreateWindow("Help",);
         //printf("create help subwindow\n");
-        subWindow=glutCreateSubWindow(mainWindow,5,5,window_width-10,window_height/5);
+        subWindow=glutCreateSubWindow(mainWindow,5,5,window_width-10,window_height/4);
         glutDisplayFunc(subDisplay);
         glutReshapeFunc(subReshape);
 
@@ -1062,10 +1105,14 @@ void toggleHelpWindow(void){ //hauke
 
 void updateLayerEntryInPopupMenu(int id){ //id is layer id, not menu id!
     char string[200];
-    if(id < 0 || id > 19){
+    char tmp[50];
+    if(id < 0 || id > MAX_LAYER_POPUP-1){
         return;
     }
-    sprintf(string,"[%s] Layer %s%i [%c]: %s",isLayerVisible(id)?"X":"   ", (id < 10)?"0":"" ,id, layer_keys[id], layerDescription[id]);
+    sprintf(tmp, layerDescription[id],40); 
+    tmp[40]=0;
+    
+    sprintf(string,"[%s] Layer %s%i [%c]: %s%s",isLayerVisible(id)?"X":"   ", (id < 10)?"0":"" ,id, layer_keys[id], tmp, (strlen(layerDescription[id]) > 40)?"...":"");
     glutSetMenu(layerMenu);
     glutChangeToMenuEntry(id+2,string, id+LAYER_0);                     
 }
@@ -1094,7 +1141,7 @@ void addLayerDescriptionToMenu(int id, char * str){
         printf("Warning: Layer id out of range\n");
         return;
     }
-    strncpy(layerDescription[id], str,199);
+    strncpy(layerDescription[id], str,MAX_LAYER_CHAR-1);
 //--------
     //sprintf(string,"[%s] Layer %s%i [%c]: %s",isLayerVisible(id)?"X":"   ", (id < 10)?"0":"" ,id, layer_keys[id], layerDescription[id]);
     //glutSetMenu(layerMenu);

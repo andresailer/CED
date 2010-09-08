@@ -207,7 +207,8 @@ void ced_describe_layer(const char *message, int id) {
         return;
     }
 
-    strncpy(text->text,message,199);
+    strncpy(text->text,message,MAX_LAYER_CHAR-1);
+    text->text[MAX_LAYER_CHAR-1] = 0;
     text->id=id;
     //text->x=xCordinate;
     //text->y=yCordinate;
@@ -222,7 +223,7 @@ void ced_layer_text(char *message, int id) {
         printf("ced_layer_text FAILED\n"); 
         return;
     }
-    strncpy(obj->str,message,199);
+    strncpy(obj->str,message,MAX_LAYER_CHAR-1);
     obj->id=id;
     //printf("ced_layer_text\n");
 }
