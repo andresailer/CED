@@ -70,11 +70,80 @@ MARK_AS_ADVANCED( c_math_lib )
 # --------- CED SERVER (GLCED) ----------------------
 OPTION( CED_SERVER "Set to ON to build the glced server" ON )
 MESSAGE( STATUS "CED_SERVER = ${CED_SERVER}" )
-MESSAGE( STATUS "CED_SERVER = ${CED_SERVER}" )
+
 IF( CED_SERVER )
 
     IF( NOT GLUT_FOUND OR NOT OPENGL_FOUND )
-        MESSAGE( FATAL_ERROR "could not find packages glut + opengl required to build glced" )
+
+        #MESSAGE( FATAL_ERROR "could not find packages glut + opengl required to build glced" )
+
+        MESSAGE( "" )
+        MESSAGE( "GLUT was not found on your system !" )
+        MESSAGE( "" )
+
+        IF( "${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}" LESS 2.8 )
+        MESSAGE( "
+
+            Your cmake version is less than 2.8. To install freeglut
+            automatically you need cmake >= 2.8.
+
+            However if you have root privileges it is recommended to install
+            an operating system supported package, e.g.:
+              # sudo apt-get install freeglut3  # debian/ubuntu
+              # yum install freeglut-devel      # scientific linux /redhat
+
+            You need to reconfigure CED afterwards.
+            
+            If you do not have cmake >= 2.8 neither root privileges, you can
+            get the freeglut source code from http://freeglut.sourceforge.net
+            and install freeglut manually.
+            
+            In order to tell cmake how to find glut you need to set two special
+            variables before calling cmake to locate libraries / header
+            files in custom places, e.g.:
+            export CMAKE_LIBRARY_PATH=$HOME/myglut/lib
+            export CMAKE_INCLUDE_PATH=$HOME/myglut/include
+            "
+        )
+
+ 
+            MESSAGE( FATAL_ERROR " CMake version < 2.8 - cannot configure and install GLUT (freeglut) from source" )
+        ELSE()
+            include( ExternalProject )
+
+            SET( GLUT_EXTERNAL TRUE )
+
+            IF( NOT DEFINED GLUT_VERSION)
+                SET( GLUT_VERSION "2.6.0" )
+            ENDIF()
+
+            #SET( GLUT_DOWNLOAD_MIRROR "http://sourceforge.net/projects/freeglut/files/freeglut" )
+            SET( GLUT_DOWNLOAD_MIRROR "http://ignum.dl.sourceforge.net/project/freeglut/freeglut" )
+            SET( GLUT_DOWNLOAD_URL ${GLUT_DOWNLOAD_MIRROR}/freeglut-${GLUT_VERSION}.tar.gz )
+            #SET( GLUT_INSTALL_PREFIX ${PROJECT_BINARY_DIR} )
+            SET( GLUT_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX} )
+            SET( GLUT_CONFIGURE_COMMAND ./configure --prefix=${GLUT_INSTALL_PREFIX} )
+
+            MESSAGE( STATUS "GLUT (freeglut) will be configured and built from source" )
+            MESSAGE( STATUS "GLUT_VERSION: ${GLUT_VERSION} (chage with cmake -DGLUT_VERSION=2.6.0)" )
+            MESSAGE( STATUS "GLUT_DOWNLOAD_MIRROR: ${GLUT_DOWNLOAD_MIRROR}" )
+            MESSAGE( STATUS "GLUT_DOWNLOAD_URL: ${GLUT_DOWNLOAD_URL}" )
+            MESSAGE( STATUS "GLUT_INSTALL_PREFIX: ${GLUT_INSTALL_PREFIX}" )
+            MESSAGE( STATUS "GLUT_CONFIGURE_COMMAND ${GLUT_CONFIGURE_COMMAND}" )
+
+            ExternalProject_Add( freeglut
+                URL ${GLUT_DOWNLOAD_URL}
+                CONFIGURE_COMMAND ${GLUT_CONFIGURE_COMMAND}
+                BUILD_IN_SOURCE 1
+                INSTALL_COMMAND make install
+            )
+            # FIXME use FIND_XXX
+            SET( GLUT_INCLUDE_DIR ${GLUT_INSTALL_PREFIX}/include )
+            SET( GLUT_INCLUDE_DIRS ${GLUT_INCLUDE_DIR} )
+            SET( GLUT_glut_LIBRARY ${GLUT_INSTALL_PREFIX}/lib/libglut.so )
+            SET( GLUT_LIBRARIES ${GLUT_glut_LIBRARY} )
+            SET( GLUT_FOUND TRUE )
+        ENDIF()
     ENDIF()
 
     INCLUDE_DIRECTORIES( ${GLUT_INCLUDE_DIR} )
